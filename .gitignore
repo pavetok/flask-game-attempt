@@ -1,0 +1,14 @@
+.idea
+.settings
+translations
+venv
+tmp
+search.db
+db_repository
+cmd.bat
+*.py[co]
+*.db
+*.xml
+.project
+.pydevproject
+*.mo
