@@ -37,20 +37,26 @@ class TestCase(unittest.TestCase):
         db.session.add(c11)
         db.session.commit()
 
-    def test_object_property(self):
-        # create properties
-        p1 = models.Property(name='Гладить')
+    def test_category_property(self):
+        # create a category
+        c1 = models.Category(name='Heroes')
+        db.session.add(c1)
+        db.session.commit()
+        # create an association instance
+        cp1 = models.Category_Property()
+        # create property
+        p1 = models.Property(name='Speak')
         db.session.add(p1)
         db.session.commit()
-        # create a obj
-        o1 = models.Obj(name='Figvan')
-        db.session.add(o1)
+        # add property to association instance
+        cp1.property = p1
+        # append association instance to category
+        c1.properties.append(cp1)
+        db.session.add(c1)
         db.session.commit()
-        # add categories
-        t1 = models.Category.query.get(1)
-        o11 = o1.add_property(p1)
-        db.session.add(o11)
-        db.session.commit()
+        # assertions
+        assert c1.properties[0].property.name == 'Speak'
+        assert p1.categories[0].category.name == 'Heroes'
 
     def test_relationship(self):
         # create properties

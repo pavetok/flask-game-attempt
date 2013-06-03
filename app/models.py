@@ -9,19 +9,17 @@ object_category = db.Table('object_category',
                        db.Column('category_id', db.Integer,
                                  db.ForeignKey('category.id')))
 
-
-object_property = db.Table('object_property',
-                           db.Column('owner_id', db.Integer,
-                                     db.ForeignKey('obj.id')),
-                           db.Column('property_id', db.Integer,
-                                     db.ForeignKey('property.id')),
-                           db.Column('target_id', db.Integer,
-                                     db.ForeignKey('obj.id')))
+class Category_Property(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), primary_key=True)
+    property_id = db.Column(db.Integer, db.ForeignKey('property.id'), primary_key=True)
+    property = db.relationship("Property", backref='categories')
 
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
+    properties = db.relationship('Category_Property', backref='category')
 
     def __repr__(self):
         return '<Category %r>' % (self.name)
@@ -31,19 +29,10 @@ class Obj(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
     categories = db.relationship('Category',
-                              secondary=object_category,
-                              primaryjoin=(object_category.c.obj_id==id),
-                              secondaryjoin=(object_category.c.category_id==id),
-                              backref=db.backref('objects', lazy='dynamic'),
-                              lazy='dynamic',
-                              viewonly=True)
-    properties = db.relationship('Property',
-                              secondary = object_property,
-                              primaryjoin = (object_property.c.owner_id==id),
-                              secondaryjoin = (object_property.c.property_id==id),
-                              backref = db.backref('objects', lazy='dynamic'),
-                              lazy='dynamic',
-                              viewonly=True)
+                  secondary=object_category, primaryjoin=(object_category.c.obj_id==id),
+                  secondaryjoin=(object_category.c.category_id==id),
+                  backref=db.backref('objects', lazy='dynamic'),
+                  lazy='dynamic', viewonly=True)
 
     def add_category(self, category):
         if not self.is_category(category):
