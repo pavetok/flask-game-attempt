@@ -11,6 +11,7 @@ cov = coverage(branch = True, omit = ['venv/*', 'tests.py'])
 cov.start()
 
 class TestCase(unittest.TestCase):
+
     def setUp(self):
         app.config['TESTING'] = True
         app.config['CSRF_ENABLED'] = False
@@ -36,6 +37,11 @@ class TestCase(unittest.TestCase):
         c11 = o1.add_category(c1)
         db.session.add(c11)
         db.session.commit()
+        # assertions
+        print o1.categories
+        assert o1.categories.count() == 1
+        assert o1.categories.count() == 'Heroes'
+        assert c1.properties.first().name == 'Figvan'
 
     def test_category_property(self):
         # create a category
@@ -58,24 +64,45 @@ class TestCase(unittest.TestCase):
         assert c1.properties[0].property.name == 'Speak'
         assert p1.categories[0].category.name == 'Heroes'
 
-    def test_relationship(self):
+    def test_operation(self):
         # create properties
-        p1 = models.Property(name='Gladit')
-        p2 = models.Property(name='Gladitsya')
+        p1 = models.Property(name='Speak')
+        p2 = models.Property(name='Read')
         db.session.add(p1)
         db.session.add(p2)
         db.session.commit()
-        assert p1.del_relation(p2) == None
-        # create a relationship
-        p1 = models.Property.query.get(1)
-        p2 = models.Property.query.get(2)
-        p11 = p1.add_passive(p2)
-        db.session.add(p11)
+        # create a relation instance
+        op1 = models.Operation(name='Speak-Read')
+        # add properties to relation
+        op1.active_property = p1
+        op1.passive_property = p2
+        db.session.add(op1)
         db.session.commit()
-        assert p1.add_passive(p2) == None
-        print p1.passive_properties.first().name
-        assert p1.passive_properties.first().name == 'Gladitsya'
-        assert p2.active_properties.first().name == 'Gladit'
+        # assertions
+        assert op1.active_property.name == 'Speak'
+        assert op1.passive_property.name == 'Read'
+
+    def test_knowledge(self):
+        # create instances
+        o1 = models.Obj(name='Figvan')
+        o2 = models.Obj(name='Food')
+        p1 = models.Property(name='Edible')
+        db.session.add(o1)
+        db.session.add(o2)
+        db.session.add(p1)
+        db.session.commit()
+        # create a knowledge instance
+        kn1 = models.Knowledge()
+        # add properties to relation
+        kn1.subject = o1
+        kn1.object = o2
+        kn1.property = p1
+        db.session.add(kn1)
+        db.session.commit()
+        # assertions
+        assert kn1.subject.name == 'Figvan'
+        assert kn1.object.name == 'Food'
+        assert kn1.property.name == 'Edible'
 
 if __name__ == '__main__':
     try:
