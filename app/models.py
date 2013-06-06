@@ -46,9 +46,14 @@ class Obj(db.Model):
     properties = db.relationship('Object_Property', backref='obj')
 
     def modify_property(self, **kwargs):
-        for key, value in kwargs:
-            p = Property(name=key, value=value)
-            self.property()
+        for key in kwargs:
+            p = Property(name=key)
+            op = Object_Property(property=p, value=kwargs[key])
+            self.properties.append(op)
+
+    def get_property(self, prop):
+        return Object_Property.query.join(Property, (Property.id==Object_Property.property_id)) \
+                 .filter(Property.name==prop).first().value
 
     def add_category(self, category):
         if not self.is_category(category):
