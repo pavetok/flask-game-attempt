@@ -16,6 +16,13 @@ category_operation = db.Table('category_operation',
                              db.Column('operation_id', db.Integer,
                                        db.ForeignKey('operation.id')))
 
+class Object_Property(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    obj_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
+    property_id = db.Column(db.Integer, db.ForeignKey('property.id'))
+    value = db.Column(db.Integer)
+    property = db.relationship("Property", backref='objects')
+
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -36,9 +43,7 @@ class Category(db.Model):
 class Obj(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
-    property_id = db.Column(db.Integer, db.ForeignKey('property.id'))
-    value =  db.Column(db.String(120))
-    property = db.relationship('Property', primaryjoin="Property.id==Obj.property_id")
+    properties = db.relationship('Object_Property', backref='obj')
 
     def modify_property(self, **kwargs):
         for key, value in kwargs:

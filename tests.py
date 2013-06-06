@@ -99,23 +99,35 @@ class TestCase(unittest.TestCase):
         o2 = models.Obj.query.get(2)
         p1 = models.Property.query.get(1)
         p2 = models.Property.query.get(2)
-        # add properties and values
-        o1.property = p1
-        o1.value = 5
-        o2.property = p2
-        o2.value = 10
+        # create association instances
+        op1 = models.Object_Property()
+        op2 = models.Object_Property()
+        # add properties and values to association instances
+        op1.property = p1
+        op1.value = 5
+        op2.property = p2
+        op2.value = 10
+        # append association instances to objects
+        o1.properties.append(op1)
+        o2.properties.append(op2)
         db.session.add(o1)
         db.session.add(o2)
         db.session.commit()
         # query instances
         o1 = models.Obj.query.get(1)
         o2 = models.Obj.query.get(2)
+        op1 = models.Object_Property.query.get(1)
+        op2 = models.Object_Property.query.get(2)
         p1 = models.Property.query.get(1)
         p2 = models.Property.query.get(2)
         # assertions
-        assert o1.property.name == 'power'
-        assert o1.property.name == 'power'
-        assert o2.categories.first().name == 'animals'
+        assert o1.properties[0].property.name == 'power'
+        assert o2.properties[0].property.name == 'health'
+        assert op1.value == 5
+        assert op2.value == 10
+        assert p1.objects[0].obj.name == 'figvan'
+        assert p2.objects[0].obj.name == 'troll'
+
 
     def test_category_operation(self):
         # create a category
