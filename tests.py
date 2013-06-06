@@ -23,16 +23,39 @@ class TestCase(unittest.TestCase):
         db.session.remove()
         db.drop_all()
 
+    def test_operation(self):
+        # create instances
+        o1 = models.Obj(name='figvan')
+        o2 = models.Obj(name='troll')
+        p1 = models.Property(name='health')
+        p2 = models.Property(name='power')
+        op1 = models.Operation(name='hit', formula='(health - power)')
+        db.session.add(o1)
+        db.session.add(o2)
+        db.session.add(p1)
+        db.session.add(p2)
+        db.session.add(op1)
+        db.session.commit()
+        # Set properties
+        o1.modify_property(power=5)
+        o2.modify_property(health=10)
+        assert o1.get_property('power') == 5
+        assert o2.get_property('health') == 10
+        # perform operation
+        o1.perform_operation(operation=op1, target=o2)
+        # check
+        assert o2.get_property('health') == 5
+
     def test_category_object(self):
         # create a category
-        c1 = models.Category(name='Heroes')
-        c2 = models.Category(name='Animals')
+        c1 = models.Category(name='heroes')
+        c2 = models.Category(name='animals')
         db.session.add(c1)
         db.session.add(c2)
         db.session.commit()
         # create a object
-        o1 = models.Obj(name='Locky')
-        o2 = models.Obj(name='Cat')
+        o1 = models.Obj(name='locky')
+        o2 = models.Obj(name='cat')
         db.session.add(o1)
         db.session.add(o2)
         db.session.commit()
@@ -53,88 +76,121 @@ class TestCase(unittest.TestCase):
         o1 = models.Obj.query.get(1)
         o2 = models.Obj.query.get(2)
         # assertions
-        assert o1.categories.first().name == 'Heroes'
-        assert c1.objects.first().name == 'Locky'
-        assert o2.categories.first().name == 'Animals'
-        assert c2.objects.first().name == 'Cat'
+        assert o1.categories.first().name == 'heroes'
+        assert c1.objects.first().name == 'locky'
+        assert o2.categories.first().name == 'animals'
+        assert c2.objects.first().name == 'cat'
 
-    def test_category_property(self):
-        # create a category
-        c1 = models.Category(name='Heroes')
-        c2 = models.Category(name='Animals')
-        db.session.add(c1)
-        db.session.add(c2)
+    def test_object_property(self):
+        # create objects
+        o1 = models.Obj(name='figvan')
+        o2 = models.Obj(name='troll')
+        db.session.add(o1)
+        db.session.add(o2)
         db.session.commit()
-        # create a property
-        p1 = models.Property(name='Speak')
-        p2 = models.Property(name='Shhhh')
+        # create properties
+        p1 = models.Property(name='power')
+        p2 = models.Property(name='health')
         db.session.add(p1)
         db.session.add(p2)
         db.session.commit()
         # query instances
-        c1 = models.Category.query.get(1)
-        c2 = models.Category.query.get(2)
+        o1 = models.Obj.query.get(1)
+        o2 = models.Obj.query.get(2)
         p1 = models.Property.query.get(1)
         p2 = models.Property.query.get(2)
+        # add properties and values
+        o1.property = p1
+        o1.value = 5
+        o2.property = p2
+        o2.value = 10
+        db.session.add(o1)
+        db.session.add(o2)
+        db.session.commit()
+        # query instances
+        o1 = models.Obj.query.get(1)
+        o2 = models.Obj.query.get(2)
+        p1 = models.Property.query.get(1)
+        p2 = models.Property.query.get(2)
+        # assertions
+        assert o1.property.name == 'power'
+        assert o1.property.name == 'power'
+        assert o2.categories.first().name == 'animals'
+
+    def test_category_operation(self):
+        # create a category
+        c1 = models.Category(name='heroes')
+        c2 = models.Category(name='animals')
+        db.session.add(c1)
+        db.session.add(c2)
+        db.session.commit()
+        # create a operations
+        op1 = models.Operation(name='speak')
+        op2 = models.Operation(name='walk')
+        db.session.add(op1)
+        db.session.add(op2)
+        db.session.commit()
+        # query instances
+        c1 = models.Category.query.get(1)
+        c2 = models.Category.query.get(2)
+        op1 = models.Operation.query.get(1)
+        op2 = models.Operation.query.get(2)
         # append
-        p1.categories.append(c1)
-        c2.properties.append(p2)
-        db.session.add(p1)
+        op1.categories.append(c1)
+        c2.operations.append(op2)
+        db.session.add(op1)
         db.session.add(c2)
         db.session.commit()
         # query instances
         c1 = models.Category.query.get(1)
         c2 = models.Category.query.get(2)
-        p1 = models.Property.query.get(1)
-        p2 = models.Property.query.get(2)
+        op1 = models.Operation.query.get(1)
+        op2 = models.Operation.query.get(2)
         # assertions
-        assert p1.categories.first().name == 'Heroes'
-        assert c1.properties.first().name == 'Speak'
-        assert p2.categories.first().name == 'Animals'
-        assert c2.properties.first().name == 'Shhhh'
-
-    def test_relaction(self):
-        # create qualities
-        q1 = models.Quality(name='Consuming', is_active=True)
-        q2 = models.Quality(name='Eaten', is_active=False)
-        db.session.add(q1)
-        db.session.add(q2)
-        db.session.commit()
-        # create a relaction and add qualities
-        r1 = models.Relaction(name='Eat', active_quality=q1, passive_quality=q2)
-        # r1.active_quality = q1
-        # r1.passive_quality = q2
-        db.session.add(r1)
-        db.session.commit()
-        # query instance
-        r1 = models.Relaction.query.get(1)
-        # assertions
-        assert r1.name == 'Eat'
-        assert r1.active_quality.name == 'Consuming'
-        assert r1.passive_quality.name == 'Eaten'
+        assert op1.categories.first().name == 'heroes'
+        assert c1.operations.first().name == 'speak'
+        assert op2.categories.first().name == 'animals'
+        assert c2.operations.first().name == 'walk'
 
     def test_knowledge(self):
         # create instances
-        o1 = models.Obj(name='Figvan')
-        o2 = models.Obj(name='Food')
+        o1 = models.Obj(name='figvan')
+        c1 = models.Category(name='heroes')
+        o2 = models.Obj(name='troll')
+        p1 = models.Property(name='power')
+        op1 = models.Operation(name='hit')
         db.session.add(o1)
+        db.session.add(c1)
         db.session.add(o2)
+        db.session.add(p1)
+        db.session.add(op1)
         db.session.commit()
         # create a knowledge instance
         kn1 = models.Knowledge()
         # query instances
         o1 = models.Obj.query.get(1)
+        c1 = models.Category.query.get(1)
         o2 = models.Obj.query.get(2)
+        p1 = models.Property.query.get(1)
+        op1 = models.Operation.query.get(1)
         # add properties to relation
         kn1.subject = o1
+        kn1.category = c1
         kn1.obj = o2
+        kn1.property = p1
+        kn1.operation = op1
         db.session.add(kn1)
         db.session.commit()
         # query instance
         kn1 = models.Knowledge.query.get(1)
         # assertions
-        assert kn1.subject.name == 'Figvan'
-        assert kn1.obj.name == 'Food'
+        assert kn1.subject.name == 'figvan'
+        assert kn1.category.name == 'heroes'
+        assert kn1.obj.name == 'troll'
+        assert kn1.property.name == 'power'
+        assert kn1.operation.name == 'hit'
+
+
 
 if __name__ == '__main__':
     try:

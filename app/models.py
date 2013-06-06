@@ -10,22 +10,22 @@ category_object = db.Table('category_object',
                                     db.ForeignKey('obj.id')))
 
 
-category_property = db.Table('category_property',
+category_operation = db.Table('category_operation',
                              db.Column('category_id', db.Integer,
                                        db.ForeignKey('category.id')),
-                             db.Column('property_id', db.Integer,
-                                       db.ForeignKey('property.id')))
+                             db.Column('operation_id', db.Integer,
+                                       db.ForeignKey('operation.id')))
 
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
     objects = db.relationship('Obj',
-                             secondary=category_object,
-                             backref=db.backref('categories', lazy='dynamic'),
-                             lazy='dynamic')
-    properties = db.relationship('Property',
-                                 secondary=category_property,
+                              secondary=category_object,
+                              backref=db.backref('categories', lazy='dynamic'),
+                              lazy='dynamic')
+    operations = db.relationship('Operation',
+                                 secondary=category_operation,
                                  backref=db.backref('categories', lazy='dynamic'),
                                  lazy='dynamic')
 
@@ -36,6 +36,14 @@ class Category(db.Model):
 class Obj(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
+    property_id = db.Column(db.Integer, db.ForeignKey('property.id'))
+    value =  db.Column(db.String(120))
+    property = db.relationship('Property', primaryjoin="Property.id==Obj.property_id")
+
+    def modify_property(self, **kwargs):
+        for key, value in kwargs:
+            p = Property(name=key, value=value)
+            self.property()
 
     def add_category(self, category):
         if not self.is_category(category):
@@ -62,31 +70,25 @@ class Property(db.Model):
         return '<Property %r>' % self.name
 
 
-class Relaction(db.Model):
+class Operation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
-    active_quality_id = db.Column(db.Integer, db.ForeignKey('quality.id'), unique=True)
-    passive_quality_id = db.Column(db.Integer, db.ForeignKey('quality.id'), unique=True)
-    active_quality = db.relationship('Quality',
-                                      primaryjoin="Quality.id==Relaction.active_quality_id")
-    passive_quality = db.relationship('Quality',
-                                      primaryjoin="Quality.id==Relaction.passive_quality_id")
-
-
-class Quality(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), unique=True)
-    is_active = db.Column(db.Boolean)
+    formula = db.Column(db.String(120), unique=True)
 
     def __repr__(self):
-        return '<Quality %r>' % self.name
+        return '<Operation %r>' % self.name
 
 
 class Knowledge(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     subject_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     obj_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
-    subject = db.relationship('Obj',
-                              primaryjoin="Obj.id==Knowledge.subject_id")
-    obj = db.relationship('Obj',
-                          primaryjoin="Obj.id==Knowledge.obj_id")
+    property_id = db.Column(db.Integer, db.ForeignKey('property.id'))
+    operation_id = db.Column(db.Integer, db.ForeignKey('operation.id'))
+
+    subject = db.relationship('Obj', primaryjoin="Obj.id==Knowledge.subject_id")
+    category = db.relationship('Category', primaryjoin="Category.id==Knowledge.category_id")
+    obj = db.relationship('Obj', primaryjoin="Obj.id==Knowledge.obj_id")
+    property = db.relationship('Property', primaryjoin="Property.id==Knowledge.property_id")
+    operation = db.relationship('Operation', primaryjoin="Operation.id==Knowledge.operation_id")
