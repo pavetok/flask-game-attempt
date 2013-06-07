@@ -1,6 +1,8 @@
 # -*- coding:utf-8 -*-
 from hashlib import md5
 from app import db
+import operator, re
+import json
 
 
 category_object = db.Table('category_object',
@@ -55,9 +57,34 @@ class Obj(db.Model):
         return Object_Property.query.join(Property, (Property.id==Object_Property.property_id)) \
                  .filter(Property.name==prop).first().value
 
-    def perform_operation(self, operation, target):
-        op1 = Operation.query.filter_by(name=operation.name).first()
-        o1 = Obj.query.filter_by(name=target.name).first()
+    def get_op(self, prop):
+        return Object_Property.query.join(Property, (Property.id==Object_Property.property_id)) \
+            .filter(Property.name==prop).first()
+
+    def calculate(self, formula, obj):
+        expr = ''
+        # processing 1 argument
+        if type(formula[0]) is list:
+            expr += str(self.calculate(formula[0], obj))
+        else:
+            expr += str(obj.get_property(formula[0]))
+        # processing 2 argument
+        expr += formula[1]
+        # processing 3 argument
+        if type(formula[2]) is list:
+            expr += str(self.calculate(formula[2], obj))
+        else:
+            expr += str(self.get_property(formula[2]))
+        value = eval(expr)
+        return value
+
+    def perform_operation(self, operation, obj):
+        formula = json.loads(operation.formula)
+        # Вычисляем новое значение
+        new_value = self.calculate(formula[2], obj)
+        # Изменяем значение свойства
+        op = obj.get_op(formula[0])
+        op.value = new_value
 
     def add_category(self, category):
         if not self.is_category(category):
@@ -88,6 +115,10 @@ class Operation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
     formula = db.Column(db.String(120), unique=True)
+
+    def __init__(self, name, formula):
+        self.name = name
+        self.formula = json.dumps(formula)
 
     def __repr__(self):
         return '<Operation %r>' % self.name

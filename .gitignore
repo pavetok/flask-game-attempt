@@ -5,7 +5,7 @@ venv
 tmp
 search.db
 db_repository
-cmd.bat
+stuff
 *.py[co]
 *.db
 *.xml

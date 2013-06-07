@@ -27,9 +27,9 @@ class TestCase(unittest.TestCase):
         # create instances
         o1 = models.Obj(name='figvan')
         o2 = models.Obj(name='troll')
-        # p1 = models.Property(name='health')
-        # p2 = models.Property(name='power')
-        op1 = models.Operation(name='hit', formula='(health - power)')
+        op1 = models.Operation(name='hit', formula=['health', '=',
+                                                    ['health', '-',
+                                                     ['energy', '*', 'power']]])
         db.session.add(o1)
         db.session.add(o2)
         # db.session.add(p1)
@@ -38,19 +38,21 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # Set properties
         o1.modify_property(power=5)
-        o2.modify_property(health=10)
+        o2.modify_property(health=20)
+        o2.modify_property(energy=2)
         db.session.add(o1)
         db.session.add(o2)
         db.session.commit()
         # query instances
         o1 = models.Obj.query.get(1)
         o2 = models.Obj.query.get(2)
-        # perform operation
-        #o1.perform_operation(op1, o2)
         # check
         assert o1.get_property('power') == 5
+        assert o2.get_property('health') == 20
+        # perform operation
+        o1.perform_operation(op1, o2)
+        # check
         assert o2.get_property('health') == 10
-        #assert o2.get_property('health') == 5
 
     def test_category_object(self):
         # create a category
