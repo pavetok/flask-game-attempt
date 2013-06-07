@@ -55,6 +55,10 @@ class Obj(db.Model):
         return Object_Property.query.join(Property, (Property.id==Object_Property.property_id)) \
                  .filter(Property.name==prop).first().value
 
+    def perform_operation(self, operation, target):
+        op1 = Operation.query.filter_by(name=operation.name).first()
+        o1 = Obj.query.filter_by(name=target.name).first()
+
     def add_category(self, category):
         if not self.is_category(category):
             self.categories.append(category)

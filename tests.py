@@ -42,12 +42,14 @@ class TestCase(unittest.TestCase):
         db.session.add(o1)
         db.session.add(o2)
         db.session.commit()
-        print o1.get_property('power')
+        # query instances
+        o1 = models.Obj.query.get(1)
+        o2 = models.Obj.query.get(2)
+        # perform operation
+        #o1.perform_operation(op1, o2)
+        # check
         assert o1.get_property('power') == 5
         assert o2.get_property('health') == 10
-        # perform operation
-        #o1.perform_operation(operation=op1, target=o2)
-        # check
         #assert o2.get_property('health') == 5
 
     def test_category_object(self):
