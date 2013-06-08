@@ -25,54 +25,59 @@ class TestCase(unittest.TestCase):
 
     def test_operation(self):
         # create instances
-        o1 = models.Obj(name='figvan')
-        o2 = models.Obj(name='troll')
-        op1 = models.Operation(name='hit',
-                               formula=['obj.health', '=',
-                                        ['obj.health', '-',
-                                         ['subj.energy', '*',
-                                          'subj.power']]])
-        op2 = models.Operation(name='eat',
-                               formula=['subj.health', '=',
-                                        ['subj.health', '+',
-                                         ['subj.power', '*',
-                                          'subj.angry']]])
-        db.session.add(o1)
-        db.session.add(o2)
-        db.session.add(op1)
-        db.session.add(op2)
+        figvan = models.Obj(name='figvan')
+        troll = models.Obj(name='troll')
+        hit = models.Operation(name='hit',
+                               formulas=[
+                                   ['obj.health', '=',
+                                    ['obj.health', '-',
+                                     ['subj.energy', '*', 'subj.power']]],
+                                   ['subj.energy', '=',
+                                    ['subj.energy', '-', '1']]
+                               ])
+        eat = models.Operation(name='eat',
+                               formulas=[
+                                   ['subj.health', '=',
+                                    ['subj.health', '+',
+                                     ['subj.power', '*', 'subj.angry']]],
+                               ])
+        db.session.add(figvan)
+        db.session.add(troll)
+        db.session.add(hit)
+        db.session.add(eat)
         db.session.commit()
         # Set properties
-        o1.set_property_value(energy=2)
-        o1.set_property_value(angry=3)
-        o1.set_property_value(health=5)
-        o1.set_property_value(power=5)
-        db.session.add(o1)
+        figvan.set_property_value(energy=2)
+        figvan.set_property_value(angry=3)
+        figvan.set_property_value(health=5)
+        figvan.set_property_value(power=5)
+        db.session.add(figvan)
         db.session.commit()
-        o2.set_property_value(health=20)
-        db.session.add(o2)
+        troll.set_property_value(health=20)
+        db.session.add(troll)
         db.session.commit()
         # query instances
-        o1 = models.Obj.query.get(1)
-        o2 = models.Obj.query.get(2)
+        figvan = models.Obj.query.get(1)
+        troll = models.Obj.query.get(2)
         # check
-        assert o1.get_property_value('energy') == 2
-        assert o1.get_property_value('angry') == 3
-        assert o1.get_property_value('health') == 5
-        assert o1.get_property_value('power') == 5
-        assert o2.get_property_value('health') == 20
+        assert figvan.get_property_value('energy') == 2
+        assert figvan.get_property_value('angry') == 3
+        assert figvan.get_property_value('health') == 5
+        assert figvan.get_property_value('power') == 5
+        assert troll.get_property_value('health') == 20
         # perform operation
-        o1.perform_operation(op1, o2)
-        o1.perform_operation(op2, o2)
-        db.session.add(o1)
-        db.session.add(o2)
+        figvan.perform_operation(hit, troll)
+        figvan.perform_operation(eat, troll)
+        db.session.add(figvan)
+        db.session.add(troll)
         db.session.commit()
         # query instances
-        o1 = models.Obj.query.get(1)
-        o2 = models.Obj.query.get(2)
+        figvan = models.Obj.query.get(1)
+        troll = models.Obj.query.get(2)
         # check
-        assert o1.get_property_value('health') == 20
-        assert o2.get_property_value('health') == 10
+        assert figvan.get_property_value('health') == 20
+        assert figvan.get_property_value('energy') == 1
+        assert troll.get_property_value('health') == 10
 
     def test_category_object(self):
         # create a category

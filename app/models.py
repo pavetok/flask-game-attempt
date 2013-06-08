@@ -86,21 +86,24 @@ class Obj(db.Model):
                 expr += str(obj.get_property_value(prop_name))
             else:
                 expr += str(arg)
+        print expr
         value = eval(expr)
         return value
 
     def perform_operation(subj, operation, obj):
-        formula = json.loads(operation.formula)
-        # Вычисляем новое значение
-        new_value = subj.calculate(formula[2], obj)
-        # Изменяем значение свойства
-        prop_type = formula[0].split(".")[0]
-        prop_name = formula[0].split(".")[1]
-        pair = {prop_name: new_value}
-        if prop_type == 'subj':
-            subj.set_property_value(**pair)
-        else:
-            obj.set_property_value(**pair)
+        formulas = json.loads(operation.formulas)
+        for formula in formulas:
+            # Вычисляем новое значение
+            new_value = subj.calculate(formula[2], obj)
+            # Изменяем значение свойства
+            prop_type = formula[0].split(".")[0]
+            prop_name = formula[0].split(".")[1]
+            pair = {prop_name: new_value}
+            if prop_type == 'subj':
+                subj.set_property_value(**pair)
+            else:
+                obj.set_property_value(**pair)
+
 
     def add_category(self, category):
         if not self.is_category(category):
@@ -131,11 +134,11 @@ class Property(db.Model):
 class Operation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
-    formula = db.Column(db.String(120))
+    formulas = db.Column(db.String(255))
 
-    def __init__(self, name, formula):
+    def __init__(self, name, formulas):
         self.name = name
-        self.formula = json.dumps(formula)
+        self.formulas = json.dumps(formulas)
 
     def __repr__(self):
         return '<Operation %r>' % self.name
