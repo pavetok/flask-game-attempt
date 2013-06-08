@@ -1,7 +1,6 @@
 # -*- coding:utf-8 -*-
 from hashlib import md5
 from app import db
-import operator, re
 import json
 
 
@@ -47,44 +46,61 @@ class Obj(db.Model):
     name = db.Column(db.String(120), unique=True)
     properties = db.relationship('Object_Property', backref='obj')
 
-    def modify_property(self, **kwargs):
+    def set_property_value(self, **kwargs):
         for key in kwargs:
-            p = Property(name=key)
-            op = Object_Property(property=p, value=kwargs[key])
-            self.properties.append(op)
+            op = self.get_obj_prop_inst(key)
+            p = Property.query.filter(Property.name==key).first()
+            if op is not None:
+                op.value = kwargs[key]
+            elif p is not None:
+                op = Object_Property(property=p, value=kwargs[key])
+                self.properties.append(op)
+            else:
+                p = Property(name=key)
+                op = Object_Property(property=p, value=kwargs[key])
+                self.properties.append(op)
 
-    def get_property(self, prop):
-        return Object_Property.query.join(Property, (Property.id==Object_Property.property_id)) \
-                 .filter(Property.name==prop).first().value
 
-    def get_op(self, prop):
-        return Object_Property.query.join(Property, (Property.id==Object_Property.property_id)) \
-            .filter(Property.name==prop).first()
+    def get_property_value(self, prop_name):
+        return Object_Property.query.join(Property,
+             (Property.id==Object_Property.property_id))\
+             .filter(Property.name==prop_name)\
+             .filter(self.id==Object_Property.obj_id).first().value
 
-    def calculate(self, formula, obj):
+    def get_obj_prop_inst(self, prop_name):
+        return Object_Property.query.join(Property,
+            (Property.id==Object_Property.property_id))\
+            .filter(Property.name==prop_name)\
+            .filter(self.id==Object_Property.obj_id).first()
+
+    def calculate(subj, formula, obj):
         expr = ''
-        # processing 1 argument
-        if type(formula[0]) is list:
-            expr += str(self.calculate(formula[0], obj))
-        else:
-            expr += str(obj.get_property(formula[0]))
-        # processing 2 argument
-        expr += formula[1]
-        # processing 3 argument
-        if type(formula[2]) is list:
-            expr += str(self.calculate(formula[2], obj))
-        else:
-            expr += str(self.get_property(formula[2]))
+        for arg in formula:
+            if type(arg) is list:
+                expr += str(subj.calculate(arg, obj))
+            elif arg.split(".")[0] == 'subj':
+                prop_name = arg.split(".")[1]
+                expr += str(subj.get_property_value(prop_name))
+            elif arg.split(".")[0] == 'obj':
+                prop_name = arg.split(".")[1]
+                expr += str(obj.get_property_value(prop_name))
+            else:
+                expr += str(arg)
         value = eval(expr)
         return value
 
-    def perform_operation(self, operation, obj):
+    def perform_operation(subj, operation, obj):
         formula = json.loads(operation.formula)
         # Вычисляем новое значение
-        new_value = self.calculate(formula[2], obj)
+        new_value = subj.calculate(formula[2], obj)
         # Изменяем значение свойства
-        op = obj.get_op(formula[0])
-        op.value = new_value
+        prop_type = formula[0].split(".")[0]
+        prop_name = formula[0].split(".")[1]
+        pair = {prop_name: new_value}
+        if prop_type == 'subj':
+            subj.set_property_value(**pair)
+        else:
+            obj.set_property_value(**pair)
 
     def add_category(self, category):
         if not self.is_category(category):
@@ -97,7 +113,8 @@ class Obj(db.Model):
             return self
 
     def is_category(self, category):
-        return self.categories.filter(category_object.c.category_id==category.id).count() > 0
+        return self.categories.filter(category_object.c.category_id==category.id)\
+                   .count() > 0
 
     def __repr__(self):
         return '<Object %r>' % self.name
@@ -114,7 +131,7 @@ class Property(db.Model):
 class Operation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
-    formula = db.Column(db.String(120), unique=True)
+    formula = db.Column(db.String(120))
 
     def __init__(self, name, formula):
         self.name = name
