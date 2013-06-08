@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 #!flask/bin/python
 import unittest
-from datetime import datetime, timedelta
+from datetime import datetime
 from app import app, db, models
 from config import basedir
 from coverage import coverage
@@ -24,7 +24,7 @@ class TestCase(unittest.TestCase):
         db.drop_all()
 
     def test_operation(self):
-        # create instances
+        # create objects
         figvan = models.Obj(name='figvan')
         troll = models.Obj(name='troll')
         hit = models.Operation(name='hit',
@@ -46,7 +46,7 @@ class TestCase(unittest.TestCase):
         db.session.add(hit)
         db.session.add(eat)
         db.session.commit()
-        # Set properties
+        # set properties
         figvan.set_property_value(energy=2)
         figvan.set_property_value(angry=3)
         figvan.set_property_value(health=5)
@@ -56,10 +56,10 @@ class TestCase(unittest.TestCase):
         troll.set_property_value(health=20)
         db.session.add(troll)
         db.session.commit()
-        # query instances
+        # query from db
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
-        # check
+        # assert
         assert figvan.get_property_value('energy') == 2
         assert figvan.get_property_value('angry') == 3
         assert figvan.get_property_value('health') == 5
@@ -71,10 +71,10 @@ class TestCase(unittest.TestCase):
         db.session.add(figvan)
         db.session.add(troll)
         db.session.commit()
-        # query instances
+        # query from db
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
-        # check
+        # assert
         assert figvan.get_property_value('health') == 20
         assert figvan.get_property_value('energy') == 1
         assert troll.get_property_value('health') == 10
@@ -92,7 +92,7 @@ class TestCase(unittest.TestCase):
         db.session.add(o1)
         db.session.add(o2)
         db.session.commit()
-        # query instances
+        # query from db
         c1 = models.Category.query.get(1)
         c2 = models.Category.query.get(2)
         o1 = models.Obj.query.get(1)
@@ -103,12 +103,12 @@ class TestCase(unittest.TestCase):
         db.session.add(o1)
         db.session.add(c2)
         db.session.commit()
-        # query instances
+        # query from db
         c1 = models.Category.query.get(1)
         c2 = models.Category.query.get(2)
         o1 = models.Obj.query.get(1)
         o2 = models.Obj.query.get(2)
-        # assertions
+        # assert
         assert o1.categories.first().name == 'heroes'
         assert c1.objects.first().name == 'locky'
         assert o2.categories.first().name == 'animals'
@@ -127,7 +127,7 @@ class TestCase(unittest.TestCase):
         db.session.add(p1)
         db.session.add(p2)
         db.session.commit()
-        # query instances
+        # query from db
         o1 = models.Obj.query.get(1)
         o2 = models.Obj.query.get(2)
         p1 = models.Property.query.get(1)
@@ -146,14 +146,14 @@ class TestCase(unittest.TestCase):
         db.session.add(o1)
         db.session.add(o2)
         db.session.commit()
-        # query instances
+        # query from db
         o1 = models.Obj.query.get(1)
         o2 = models.Obj.query.get(2)
         op1 = models.Object_Property.query.get(1)
         op2 = models.Object_Property.query.get(2)
         p1 = models.Property.query.get(1)
         p2 = models.Property.query.get(2)
-        # assertions
+        # assert
         assert o1.properties[0].property.name == 'power'
         assert o2.properties[0].property.name == 'health'
         assert op1.value == 5
@@ -175,7 +175,7 @@ class TestCase(unittest.TestCase):
         db.session.add(op1)
         db.session.add(op2)
         db.session.commit()
-        # query instances
+        # query from db
         c1 = models.Category.query.get(1)
         c2 = models.Category.query.get(2)
         op1 = models.Operation.query.get(1)
@@ -186,12 +186,12 @@ class TestCase(unittest.TestCase):
         db.session.add(op1)
         db.session.add(c2)
         db.session.commit()
-        # query instances
+        # query from db
         c1 = models.Category.query.get(1)
         c2 = models.Category.query.get(2)
         op1 = models.Operation.query.get(1)
         op2 = models.Operation.query.get(2)
-        # assertions
+        # assert
         assert op1.categories.first().name == 'heroes'
         assert c1.operations.first().name == 'speak'
         assert op2.categories.first().name == 'animals'
@@ -212,7 +212,7 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # create a knowledge instance
         kn1 = models.Knowledge()
-        # query instances
+        # query from db
         o1 = models.Obj.query.get(1)
         c1 = models.Category.query.get(1)
         o2 = models.Obj.query.get(2)
@@ -226,15 +226,14 @@ class TestCase(unittest.TestCase):
         kn1.operation = op1
         db.session.add(kn1)
         db.session.commit()
-        # query instance
+        # query from db
         kn1 = models.Knowledge.query.get(1)
-        # assertions
+        # assert
         assert kn1.subject.name == 'figvan'
         assert kn1.category.name == 'heroes'
         assert kn1.obj.name == 'troll'
         assert kn1.property.name == 'power'
         assert kn1.operation.name == 'hit'
-
 
 
 if __name__ == '__main__':
