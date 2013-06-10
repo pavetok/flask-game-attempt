@@ -2,6 +2,7 @@
 from hashlib import md5
 from app import db
 import json
+from app.signals import operation_performed, store_signal_data
 
 
 category_object = db.Table('category_object',
@@ -9,7 +10,6 @@ category_object = db.Table('category_object',
                                     db.ForeignKey('category.id')),
                           db.Column('obj_id', db.Integer,
                                     db.ForeignKey('obj.id')))
-
 
 category_operation = db.Table('category_operation',
                              db.Column('category_id', db.Integer,
@@ -103,6 +103,7 @@ class Obj(db.Model):
                 subj.set_property_value(**pair)
             else:
                 obj.set_property_value(**pair)
+        operation_performed.send(subj, operation=operation, obj=obj)
 
 
     def add_category(self, category):
@@ -157,3 +158,7 @@ class Knowledge(db.Model):
     obj = db.relationship('Obj', primaryjoin="Obj.id==Knowledge.obj_id")
     property = db.relationship('Property', primaryjoin="Property.id==Knowledge.property_id")
     operation = db.relationship('Operation', primaryjoin="Operation.id==Knowledge.operation_id")
+
+
+# subscriptions
+operation_performed.connect(store_signal_data)
