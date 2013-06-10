@@ -81,8 +81,8 @@ class TestCase(unittest.TestCase):
 
     def test_category_object(self):
         # create a category
-        c1 = models.Category(name='heroes')
-        c2 = models.Category(name='animals')
+        c1 = models.Category(name='герои')
+        c2 = models.Category(name='животные')
         db.session.add(c1)
         db.session.add(c2)
         db.session.commit()
@@ -109,9 +109,9 @@ class TestCase(unittest.TestCase):
         o1 = models.Obj.query.get(1)
         o2 = models.Obj.query.get(2)
         # assert
-        assert o1.categories.first().name == 'heroes'
+        assert o1.categories.first().name == u'герои'
         assert c1.objects.first().name == 'locky'
-        assert o2.categories.first().name == 'animals'
+        assert o2.categories.first().name == u'животные'
         assert c2.objects.first().name == 'cat'
 
     def test_object_property(self):
@@ -170,8 +170,8 @@ class TestCase(unittest.TestCase):
         db.session.add(c2)
         db.session.commit()
         # create a operations
-        op1 = models.Operation(name='speak')
-        op2 = models.Operation(name='walk')
+        op1 = models.Operation(name='speak', formulas=None)
+        op2 = models.Operation(name='walk', formulas=None)
         db.session.add(op1)
         db.session.add(op2)
         db.session.commit()
@@ -203,7 +203,7 @@ class TestCase(unittest.TestCase):
         c1 = models.Category(name='heroes')
         o2 = models.Obj(name='troll')
         p1 = models.Property(name='power')
-        op1 = models.Operation(name='hit')
+        op1 = models.Operation(name='hit', formulas=None)
         db.session.add(o1)
         db.session.add(c1)
         db.session.add(o2)
