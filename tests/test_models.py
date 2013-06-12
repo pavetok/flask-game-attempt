@@ -23,8 +23,8 @@ class TestCase(unittest.TestCase):
         db.session.remove()
         db.drop_all()
 
-    def test_operation(self):
-        # create objects
+    def test_operations(self):
+        # create objects and operations
         figvan = models.Obj(name='figvan')
         troll = models.Obj(name='troll')
         hit = models.Operation(name='hit',
@@ -40,6 +40,9 @@ class TestCase(unittest.TestCase):
                                    ['subj.health', '=',
                                     ['subj.health', '+',
                                      ['subj.power', '*', 'subj.angry']]],
+                                   ['obj.health', '=',
+                                    ['obj.health', '-',
+                                     ['subj.power', '*', 'subj.angry']]]
                                ])
         db.session.add(figvan)
         db.session.add(troll)
@@ -48,7 +51,7 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # set properties
         figvan.set_property_value(energy=2)
-        figvan.set_property_value(angry=3)
+        figvan.set_property_value(angry=1)
         figvan.set_property_value(health=5)
         figvan.set_property_value(power=5)
         db.session.add(figvan)
@@ -61,7 +64,7 @@ class TestCase(unittest.TestCase):
         troll = models.Obj.query.get(2)
         # assert
         assert figvan.get_property_value('energy') == 2
-        assert figvan.get_property_value('angry') == 3
+        assert figvan.get_property_value('angry') == 1
         assert figvan.get_property_value('health') == 5
         assert figvan.get_property_value('power') == 5
         assert troll.get_property_value('health') == 20
@@ -75,9 +78,9 @@ class TestCase(unittest.TestCase):
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
         # assert
-        assert figvan.get_property_value('health') == 20
+        assert figvan.get_property_value('health') == 10
         assert figvan.get_property_value('energy') == 1
-        assert troll.get_property_value('health') == 10
+        assert troll.get_property_value('health') == 5
 
     def test_category_object(self):
         # create a category
