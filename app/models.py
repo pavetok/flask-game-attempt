@@ -46,80 +46,79 @@ class Obj(db.Model):
     name = db.Column(db.String(120), unique=True)
     properties = db.relationship('Object_Property', backref='obj')
 
-    def set_property_value(self, **kwargs):
-        for key in kwargs:
-            op = self.get_obj_prop_inst(key)
-            p = Property.query.filter(Property.name==key).first()
-            if op is not None:
-                op.value = kwargs[key]
-            elif p is not None:
-                op = Object_Property(property=p, value=kwargs[key])
-                self.properties.append(op)
-            else:
-                p = Property(name=key)
-                op = Object_Property(property=p, value=kwargs[key])
-                self.properties.append(op)
-
-
-    def get_property_value(self, prop_name):
+    def get_property(self, prop_name):
         return Object_Property.query.join(Property,
-             (Property.id==Object_Property.property_id))\
-             .filter(Property.name==prop_name)\
-             .filter(self.id==Object_Property.obj_id).first().value
+                (Property.id==Object_Property.property_id)) \
+                .filter(Property.name==prop_name) \
+                .filter(self.id==Object_Property.obj_id).first().value
 
-    def get_obj_prop_inst(self, prop_name):
+    def get_obj_prop_instance(self, prop_name):
         return Object_Property.query.join(Property,
             (Property.id==Object_Property.property_id))\
             .filter(Property.name==prop_name)\
             .filter(self.id==Object_Property.obj_id).first()
 
-    def calculate(subj, formula, obj):
-        # print formula
+    def set_property(self, **kwargs):
+        for key in kwargs:
+            op = self.get_obj_prop_instance(key)
+            p = Property.query.filter(Property.name==key).first()
+            new_value = kwargs[key]
+            if op is not None:
+                op.value = new_value
+            elif p is not None:
+                op = Object_Property(property=p, value=new_value)
+                self.properties.append(op)
+            else:
+                p = Property(name=key)
+                op = Object_Property(property=p, value=new_value)
+                self.properties.append(op)
+
+    def calculate(subj, formula, obj, **kwargs):
         expr = ''
-        # Для каждого элемента формулы
         for arg in formula:
             # print arg
             if type(arg) is list:
-                expr += str(subj.calculate(arg, obj))
+                expr += str(subj.calculate(arg, obj, **kwargs))
             elif arg.split(".")[0] == 'subj':
                 prop_name = arg.split(".")[1]
-                expr += str(subj.get_property_value(prop_name))
+                expr += str(subj.get_property(prop_name))
             elif arg.split(".")[0] == 'obj':
                 prop_name = arg.split(".")[1]
-                expr += str(obj.get_property_value(prop_name))
+                expr += str(obj.get_property(prop_name))
             else:
-                # print arg
-                expr += str(arg)
+                try:
+                    prop_name = arg.split(".")[1]
+                    expr += str(kwargs[prop_name])
+                except (KeyError, IndexError):
+                    expr += str(arg)
         # print expr
         value = eval(expr)
         return value
 
-    def perform_operation(subj, operation, obj):
+    def perform_operation(subj, operation, obj=None, **kwargs):
         # import pdb; pdb.set_trace()
         formulas = json.loads(operation.formulas)
         # Если операция является цепочкой операций
-        if formulas[0] == 'chain':
-            # Удаляем слово-признак 'chain'
+        if 'chain' in formulas:
+            # Удаляем признак 'chain'
             formulas.remove('chain')
             # Для каждого из оставшихся елементов
             # рекурсивно запускаем эту же операцию.
             for op in formulas:
                 op = Operation.query.filter(Operation.name==op).first()
-                subj.perform_operation(op, obj)
+                subj.perform_operation(op, obj, **kwargs)
         else:
-            # Иначе, если операция является конечной и атомарной
             for formula in formulas:
-                # print formula
                 # Вычисляем новое значение
-                new_value = subj.calculate(formula[2], obj)
+                new_value = subj.calculate(formula[2], obj, **kwargs)
                 # Изменяем значение свойства
                 prop_type = formula[0].split(".")[0]
                 prop_name = formula[0].split(".")[1]
                 pair = {prop_name: new_value}
                 if prop_type == 'subj':
-                    subj.set_property_value(**pair)
+                    subj.set_property(**pair)
                 else:
-                    obj.set_property_value(**pair)
+                    obj.set_property(**pair)
         # Посылаем сигнал
         operation_performed.send(subj, operation=operation, obj=obj)
 

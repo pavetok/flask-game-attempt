@@ -23,37 +23,10 @@ class TestCase(unittest.TestCase):
         db.session.remove()
         db.drop_all()
 
-    def test_chain_of_operations(self):
-        # create objects and operations
+    def test_operations(self):
+        # create objects
         figvan = models.Obj(name='figvan')
         troll = models.Obj(name='troll')
-        hit = models.Operation(name='hit',
-                               formulas=[
-                                   ['obj.health', '=',
-                                    ['obj.health', '-',
-                                     ['subj.energy', '*', 'subj.power']]],
-                                   ['subj.energy', '=',
-                                    ['subj.energy', '-', '1']],
-                               ])
-        eat = models.Operation(name='eat',
-                               formulas=[
-                                   ['subj.health', '=',
-                                    ['subj.health', '+',
-                                     ['subj.power', '*', 'subj.angry']]],
-                                   ['obj.health', '=',
-                                    ['obj.health', '-',
-                                     ['subj.power', '*', 'subj.angry']]],
-                               ])
-        db.session.add(figvan)
-        db.session.add(troll)
-        db.session.add(hit)
-        db.session.add(eat)
-        db.session.commit()
-        # create chain of operations
-        hit_and_eat = models.Operation(name='hit_and_eat',
-                                       formulas=['chain', 'hit', 'eat'])
-        db.session.add(hit_and_eat)
-        db.session.commit()
         # set properties
         figvan.set_property(energy=2)
         figvan.set_property(angry=1)
@@ -64,11 +37,41 @@ class TestCase(unittest.TestCase):
         troll.set_property(health=20)
         db.session.add(troll)
         db.session.commit()
+        # create operations
+        hit = models.Operation(name='hit',
+                               formulas=[
+                                   ['obj.health', '=',
+                                    ['obj.health', '-',
+                                     ['subj.energy', '*', 'subj.power']]],
+                                   ['subj.energy', '=',
+                                    ['subj.energy', '-', '1']]
+                               ])
+        eat = models.Operation(name='eat',
+                               formulas=[
+                                   ['subj.health', '=',
+                                    ['subj.health', '+',
+                                     ['subj.power', '*', 'subj.angry']]],
+                                   ['obj.health', '=',
+                                    ['obj.health', '-',
+                                     ['subj.power', '*', 'subj.angry']]]
+                               ])
+        db.session.add(figvan)
+        db.session.add(troll)
+        db.session.add(hit)
+        db.session.add(eat)
+        db.session.commit()
         # query from db
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
+        # assert
+        assert figvan.get_property('energy') == 2
+        assert figvan.get_property('angry') == 1
+        assert figvan.get_property('health') == 5
+        assert figvan.get_property('power') == 5
+        assert troll.get_property('health') == 20
         # perform operation
-        figvan.perform_operation(hit_and_eat, troll)
+        figvan.perform_operation(hit, troll)
+        figvan.perform_operation(eat, troll)
         db.session.add(figvan)
         db.session.add(troll)
         db.session.commit()

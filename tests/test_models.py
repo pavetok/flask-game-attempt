@@ -23,65 +23,6 @@ class TestCase(unittest.TestCase):
         db.session.remove()
         db.drop_all()
 
-    def test_operations(self):
-        # create objects and operations
-        figvan = models.Obj(name='figvan')
-        troll = models.Obj(name='troll')
-        hit = models.Operation(name='hit',
-                               formulas=[
-                                   ['obj.health', '=',
-                                    ['obj.health', '-',
-                                     ['subj.energy', '*', 'subj.power']]],
-                                   ['subj.energy', '=',
-                                    ['subj.energy', '-', '1']]
-                               ])
-        eat = models.Operation(name='eat',
-                               formulas=[
-                                   ['subj.health', '=',
-                                    ['subj.health', '+',
-                                     ['subj.power', '*', 'subj.angry']]],
-                                   ['obj.health', '=',
-                                    ['obj.health', '-',
-                                     ['subj.power', '*', 'subj.angry']]]
-                               ])
-        db.session.add(figvan)
-        db.session.add(troll)
-        db.session.add(hit)
-        db.session.add(eat)
-        db.session.commit()
-        # set properties
-        figvan.set_property_value(energy=2)
-        figvan.set_property_value(angry=1)
-        figvan.set_property_value(health=5)
-        figvan.set_property_value(power=5)
-        db.session.add(figvan)
-        db.session.commit()
-        troll.set_property_value(health=20)
-        db.session.add(troll)
-        db.session.commit()
-        # query from db
-        figvan = models.Obj.query.get(1)
-        troll = models.Obj.query.get(2)
-        # assert
-        assert figvan.get_property_value('energy') == 2
-        assert figvan.get_property_value('angry') == 1
-        assert figvan.get_property_value('health') == 5
-        assert figvan.get_property_value('power') == 5
-        assert troll.get_property_value('health') == 20
-        # perform operation
-        figvan.perform_operation(hit, troll)
-        figvan.perform_operation(eat, troll)
-        db.session.add(figvan)
-        db.session.add(troll)
-        db.session.commit()
-        # query from db
-        figvan = models.Obj.query.get(1)
-        troll = models.Obj.query.get(2)
-        # assert
-        assert figvan.get_property_value('health') == 10
-        assert figvan.get_property_value('energy') == 1
-        assert troll.get_property_value('health') == 5
-
     def test_category_object(self):
         # create a category
         c1 = models.Category(name='герои')
