@@ -23,12 +23,15 @@ class TestCase(unittest.TestCase):
         db.session.remove()
         db.drop_all()
 
-    def test_operations_with_args(self):
+    def test_events(self):
         # create objects
         figvan = models.Obj(name='figvan')
+        troll = models.Obj(name='troll')
         # set properties
         figvan.set_property(x=1, y=1)
+        troll.set_property(x=3, y=3)
         db.session.add(figvan)
+        db.session.add(troll)
         db.session.commit()
         # create operations
         move = models.Operation(name='move',
@@ -42,7 +45,7 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # query from db
         figvan = models.Obj.query.get(1)
-        kwargs = {'step.x': 1, 'step.y': 1}
+        kwargs = {'x': 1, 'y': 1}
         # perform operation
         figvan.perform_operation(move, **kwargs)
         db.session.add(figvan)

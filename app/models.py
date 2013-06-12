@@ -87,8 +87,7 @@ class Obj(db.Model):
                 expr += str(obj.get_property(prop_name))
             else:
                 try:
-                    prop_name = arg.split(".")[1]
-                    expr += str(kwargs[prop_name])
+                    expr += str(kwargs[arg])
                 except (KeyError, IndexError):
                     expr += str(arg)
         # print expr

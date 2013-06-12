@@ -55,8 +55,6 @@ class TestCase(unittest.TestCase):
                                     ['obj.health', '-',
                                      ['subj.power', '*', 'subj.angry']]]
                                ])
-        db.session.add(figvan)
-        db.session.add(troll)
         db.session.add(hit)
         db.session.add(eat)
         db.session.commit()
