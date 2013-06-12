@@ -8,4 +8,4 @@ signal_list = []
 def store_signal_data(sender, operation=None, obj=None, **extra):
     data = [sender.name, operation.name, obj.name]
     signal_list.append(data)
-    print signal_list
+    #print signal_list

@@ -74,8 +74,11 @@ class Obj(db.Model):
             .filter(self.id==Object_Property.obj_id).first()
 
     def calculate(subj, formula, obj):
+        # print formula
         expr = ''
+        # Для каждого элемента формулы
         for arg in formula:
+            # print arg
             if type(arg) is list:
                 expr += str(subj.calculate(arg, obj))
             elif arg.split(".")[0] == 'subj':
@@ -85,24 +88,39 @@ class Obj(db.Model):
                 prop_name = arg.split(".")[1]
                 expr += str(obj.get_property_value(prop_name))
             else:
+                # print arg
                 expr += str(arg)
-        print expr
+        # print expr
         value = eval(expr)
         return value
 
     def perform_operation(subj, operation, obj):
+        # import pdb; pdb.set_trace()
         formulas = json.loads(operation.formulas)
-        for formula in formulas:
-            # Вычисляем новое значение
-            new_value = subj.calculate(formula[2], obj)
-            # Изменяем значение свойства
-            prop_type = formula[0].split(".")[0]
-            prop_name = formula[0].split(".")[1]
-            pair = {prop_name: new_value}
-            if prop_type == 'subj':
-                subj.set_property_value(**pair)
-            else:
-                obj.set_property_value(**pair)
+        # Если операция является цепочкой операций
+        if formulas[0] == 'chain':
+            # Удаляем слово-признак 'chain'
+            formulas.remove('chain')
+            # Для каждого из оставшихся елементов
+            # рекурсивно запускаем эту же операцию.
+            for op in formulas:
+                op = Operation.query.filter(Operation.name==op).first()
+                subj.perform_operation(op, obj)
+        else:
+            # Иначе, если операция является конечной и атомарной
+            for formula in formulas:
+                # print formula
+                # Вычисляем новое значение
+                new_value = subj.calculate(formula[2], obj)
+                # Изменяем значение свойства
+                prop_type = formula[0].split(".")[0]
+                prop_name = formula[0].split(".")[1]
+                pair = {prop_name: new_value}
+                if prop_type == 'subj':
+                    subj.set_property_value(**pair)
+                else:
+                    obj.set_property_value(**pair)
+        # Посылаем сигнал
         operation_performed.send(subj, operation=operation, obj=obj)
 
 

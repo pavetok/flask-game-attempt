@@ -33,7 +33,7 @@ class TestCase(unittest.TestCase):
                                     ['obj.health', '-',
                                      ['subj.energy', '*', 'subj.power']]],
                                    ['subj.energy', '=',
-                                    ['subj.energy', '-', '1']]
+                                    ['subj.energy', '-', '1']],
                                ])
         eat = models.Operation(name='eat',
                                formulas=[
@@ -42,7 +42,7 @@ class TestCase(unittest.TestCase):
                                      ['subj.power', '*', 'subj.angry']]],
                                    ['obj.health', '=',
                                     ['obj.health', '-',
-                                     ['subj.power', '*', 'subj.angry']]]
+                                     ['subj.power', '*', 'subj.angry']]],
                                ])
         db.session.add(figvan)
         db.session.add(troll)
