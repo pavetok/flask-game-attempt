@@ -43,6 +43,16 @@ class TestCase(unittest.TestCase):
                                ])
         db.session.add(move)
         db.session.commit()
+        # create reactions
+        escape = models.Reaction(name='escape',
+                                 operations=move,
+                                 conditions=[
+                                     'operation.name == move',
+                                     [1, '=', 'subj.x', '-', 'obj.x'],
+                                     [1, '=', 'subj.y', '-', 'obj.y'],
+                                     ])
+        db.session.add(escape)
+        db.session.commit()
         # query from db
         figvan = models.Obj.query.get(1)
         kwargs = {'x': 1, 'y': 1}
@@ -51,10 +61,10 @@ class TestCase(unittest.TestCase):
         db.session.add(figvan)
         db.session.commit()
         # query from db
-        figvan = models.Obj.query.get(1)
+        troll = models.Obj.query.get(2)
         # assert
-        assert figvan.get_property('x') == 2
-        assert figvan.get_property('y') == 2
+        assert troll.get_property('x') == 3
+        assert troll.get_property('y') == 3
 
 
 if __name__ == '__main__':

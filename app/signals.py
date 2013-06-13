@@ -5,10 +5,10 @@ operations_signals = Namespace()
 operation_performed = operations_signals.signal('operation-performed')
 
 signal_list = []
-def store_signal_data(sender, operation=None, obj=None, **extra):
+def store_signal_data(subj, operation=None, obj=None, **extra):
     try:
-        data = [sender.name, operation.name, obj.name]
+        data = [subj.name, operation.name, obj.name]
     except AttributeError:
-        data = [sender.name, operation.name]
+        data = [subj.name, operation.name]
     signal_list.append(data)
     # print signal_list

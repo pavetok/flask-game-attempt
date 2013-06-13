@@ -2,7 +2,7 @@
 from hashlib import md5
 from app import db
 import json
-from app.signals import operation_performed, store_signal_data
+from app.signals import operation_performed, store_signal_data, signal_list
 
 
 category_object = db.Table('category_object',
@@ -94,7 +94,12 @@ class Obj(db.Model):
         value = eval(expr)
         return value
 
+    def check_signals(self):
+        lst = [signal for signal in signal_list if signal[1].name == 'move']
+
+
     def perform_operation(subj, operation, obj=None, **kwargs):
+        subj.check_signals()
         # import pdb; pdb.set_trace()
         formulas = json.loads(operation.formulas)
         # Если операция является цепочкой операций
@@ -120,7 +125,6 @@ class Obj(db.Model):
                     obj.set_property(**pair)
         # Посылаем сигнал
         operation_performed.send(subj, operation=operation, obj=obj)
-
 
     def add_category(self, category):
         if not self.is_category(category):
@@ -159,6 +163,17 @@ class Operation(db.Model):
 
     def __repr__(self):
         return '<Operation %r>' % self.name
+
+
+class Reaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), unique=True)
+    operation_id = db.Column(db.Integer, db.ForeignKey('operation.id'))
+    conditions = db.Column(db.String(255))
+    operations = db.relationship('Operation')
+
+    def __repr__(self):
+        return '<Reaction %r>' % self.name
 
 
 class Knowledge(db.Model):
