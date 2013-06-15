@@ -34,9 +34,9 @@ class TestCase(unittest.TestCase):
         move = models.Operation(name='move',
                                formulas=[
                                    ['subj.x', '=',
-                                    ['subj.x', '+', 'step.x']],
+                                    'subj.x + step.x'],
                                    ['subj.y', '=',
-                                    ['subj.y', '+', 'step.y']],
+                                    'subj.y + step.y'],
                                ])
         db.session.add(move)
         db.session.commit()
@@ -44,14 +44,14 @@ class TestCase(unittest.TestCase):
         figvan = models.Obj.query.get(1)
         kwargs = {'step.x': 1, 'step.y': 1}
         # perform operation
-        figvan.perform_operation(move, **kwargs)
+        figvan.do_operation(move, **kwargs)
         db.session.add(figvan)
         db.session.commit()
         # query from db
         figvan = models.Obj.query.get(1)
         # assert
-        assert figvan.get_property('x') == 2
-        assert figvan.get_property('y') == 2
+        assert figvan.x == 2
+        assert figvan.y == 2
 
 
 if __name__ == '__main__':

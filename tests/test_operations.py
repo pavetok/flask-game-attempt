@@ -41,19 +41,16 @@ class TestCase(unittest.TestCase):
         hit = models.Operation(name='hit',
                                formulas=[
                                    ['obj.health', '=',
-                                    ['obj.health', '-',
-                                     ['subj.energy', '*', 'subj.power']]],
+                                    'obj.health - (subj.energy * subj.power)'],
                                    ['subj.energy', '=',
-                                    ['subj.energy', '-', '1']]
+                                    'subj.energy - 1']
                                ])
         eat = models.Operation(name='eat',
                                formulas=[
                                    ['subj.health', '=',
-                                    ['subj.health', '+',
-                                     ['subj.power', '*', 'subj.angry']]],
+                                    'subj.health + (subj.power * subj.angry)'],
                                    ['obj.health', '=',
-                                    ['obj.health', '-',
-                                     ['subj.power', '*', 'subj.angry']]]
+                                    'obj.health - (subj.power * subj.angry)']
                                ])
         db.session.add(hit)
         db.session.add(eat)
@@ -62,14 +59,14 @@ class TestCase(unittest.TestCase):
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
         # assert
-        assert figvan.get_property('energy') == 2
-        assert figvan.get_property('angry') == 1
-        assert figvan.get_property('health') == 5
-        assert figvan.get_property('power') == 5
-        assert troll.get_property('health') == 20
+        assert figvan.energy == 2
+        assert figvan.angry == 1
+        assert figvan.health == 5
+        assert figvan.power == 5
+        assert troll.health == 20
         # perform operation
-        figvan.perform_operation(hit, troll)
-        figvan.perform_operation(eat, troll)
+        figvan.do_operation(hit, troll)
+        figvan.do_operation(eat, troll)
         db.session.add(figvan)
         db.session.add(troll)
         db.session.commit()
@@ -77,9 +74,9 @@ class TestCase(unittest.TestCase):
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
         # assert
-        assert figvan.get_property('health') == 10
-        assert figvan.get_property('energy') == 1
-        assert troll.get_property('health') == 5
+        assert figvan.health == 10
+        assert figvan.energy == 1
+        assert troll.health == 5
 
 
 if __name__ == '__main__':

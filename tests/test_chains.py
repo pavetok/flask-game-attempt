@@ -41,19 +41,16 @@ class TestCase(unittest.TestCase):
         hit = models.Operation(name='hit',
                                formulas=[
                                    ['obj.health', '=',
-                                    ['obj.health', '-',
-                                     ['subj.energy', '*', 'subj.power']]],
+                                    'obj.health - (subj.energy * subj.power)'],
                                    ['subj.energy', '=',
-                                    ['subj.energy', '-', '1']],
+                                    'subj.energy - 1']
                                ])
         eat = models.Operation(name='eat',
                                formulas=[
                                    ['subj.health', '=',
-                                    ['subj.health', '+',
-                                     ['subj.power', '*', 'subj.angry']]],
+                                    'subj.health + (subj.power * subj.angry)'],
                                    ['obj.health', '=',
-                                    ['obj.health', '-',
-                                     ['subj.power', '*', 'subj.angry']]],
+                                    'obj.health - (subj.power * subj.angry)']
                                ])
         db.session.add(hit)
         db.session.add(eat)
@@ -67,7 +64,7 @@ class TestCase(unittest.TestCase):
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
         # perform operation
-        figvan.perform_operation(hit_and_eat, troll)
+        figvan.do_operation(hit_and_eat, troll)
         db.session.add(figvan)
         db.session.add(troll)
         db.session.commit()
@@ -75,9 +72,9 @@ class TestCase(unittest.TestCase):
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
         # assert
-        assert figvan.get_property('health') == 10
-        assert figvan.get_property('energy') == 1
-        assert troll.get_property('health') == 5
+        assert figvan.health == 10
+        assert figvan.energy == 1
+        assert troll.health == 5
 
 
 if __name__ == '__main__':

@@ -36,11 +36,11 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # create operations
         move = models.Operation(name='move',
-                               formulas=[
-                                   ['subj.x', '=',
-                                    ['subj.x', '+', 'step.x']],
-                                   ['subj.y', '=',
-                                    ['subj.y', '+', 'step.y']],
+                                formulas=[
+                                    ['subj.x', '=',
+                                     'subj.x + step.x'],
+                                    ['subj.y', '=',
+                                     'subj.y + step.y'],
                                ])
         db.session.add(move)
         db.session.commit()
@@ -49,8 +49,8 @@ class TestCase(unittest.TestCase):
                                  obj=troll,
                                  operation=move,
                                  conditions=[
-                                     ['abs(', 'subj.x', '-', 'obj.x', ')', '<=', '1'],
-                                     ['abs(', 'subj.y', '-', 'obj.y', ')', '<=', '1'],
+                                     'abs(subj.x - obj.x) <= 1',
+                                     'abs(subj.y - obj.y) <= 1',
                                      ])
         db.session.add(escape)
         db.session.commit()
@@ -58,7 +58,7 @@ class TestCase(unittest.TestCase):
         figvan = models.Obj.query.get(1)
         kwargs = {'step.x': 1, 'step.y': 1}
         # perform operation
-        figvan.perform_operation(move, **kwargs)
+        figvan.do_operation(move, **kwargs)
         db.session.add(figvan)
         db.session.commit()
         # react
@@ -67,10 +67,10 @@ class TestCase(unittest.TestCase):
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
         # assert
-        assert figvan.get_property('x') == 2
-        assert figvan.get_property('y') == 2
-        assert troll.get_property('x') == 4
-        assert troll.get_property('y') == 4
+        assert figvan.x == 2
+        assert figvan.y == 2
+        assert troll.x == 4
+        assert troll.y == 4
 
     def test_no_reaction(self):
         # create objects
@@ -87,9 +87,9 @@ class TestCase(unittest.TestCase):
         move = models.Operation(name='move',
                                 formulas=[
                                     ['subj.x', '=',
-                                     ['subj.x', '+', 'step.x']],
+                                     'subj.x + step.x'],
                                     ['subj.y', '=',
-                                     ['subj.y', '+', 'step.y']],
+                                     'subj.y + step.y'],
                                     ])
         db.session.add(move)
         db.session.commit()
@@ -98,8 +98,8 @@ class TestCase(unittest.TestCase):
                                  obj=troll,
                                  operation=move,
                                  conditions=[
-                                     ['1', '>=', 'abs', '(', 'subj.x', '-', 'obj.x', ')'],
-                                     ['1', '>=', 'abs', '(', 'subj.y', '-', 'obj.y', ')'],
+                                     '1 >= abs(subj.x - obj.x)',
+                                     '1 >= abs(subj.y - obj.y)',
                                      ])
         db.session.add(escape)
         db.session.commit()
@@ -107,7 +107,7 @@ class TestCase(unittest.TestCase):
         figvan = models.Obj.query.get(1)
         kwargs = {'step.x': 1, 'step.y': 0}
         # perform operation
-        figvan.perform_operation(move, **kwargs)
+        figvan.do_operation(move, **kwargs)
         db.session.add(figvan)
         db.session.commit()
         # react
@@ -116,10 +116,10 @@ class TestCase(unittest.TestCase):
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
         # assert
-        assert figvan.get_property('x') == 2
-        assert figvan.get_property('y') == 1
-        assert troll.get_property('x') == 3
-        assert troll.get_property('y') == 3
+        assert figvan.x == 2
+        assert figvan.y == 1
+        assert troll.x == 3
+        assert troll.y == 3
 
 
 if __name__ == '__main__':

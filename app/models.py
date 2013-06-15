@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 from hashlib import md5
 from app import db
-import json
+import json, re
 from app.signals import operation_performed, store_signal_data, signal_list
 
 
@@ -49,6 +49,12 @@ class Obj(db.Model):
                                 primaryjoin="Reaction.obj_id==Obj.id",
                                 backref='obj')
 
+    def __getattr__(self, name):
+        return Object_Property.query.join(Property,
+            (Property.id==Object_Property.property_id)) \
+            .filter(Property.name==name) \
+            .filter(self.id==Object_Property.obj_id).first().value
+
     def get_property(self, prop_name):
         return Object_Property.query.join(Property,
                 (Property.id==Object_Property.property_id)) \
@@ -76,26 +82,39 @@ class Obj(db.Model):
             .filter(Property.name==prop_name)\
             .filter(self.id==Object_Property.obj_id).first()
 
-    def calculate(subj, expression, obj, **kwargs):
-        prepared_expr = ''
-        for arg in expression:
-            if type(arg) is list:
-                prepared_expr += str(subj.calculate(arg, obj, **kwargs))
-            elif arg.split(".")[0] == 'subj':
-                name = arg.split(".")[1]
-                prepared_expr += str(subj.get_property(name))
-            elif arg.split(".")[0] == 'obj':
-                name = arg.split(".")[1]
-                prepared_expr += str(obj.get_property(name))
-            else:
-                try:
-                    prepared_expr += str(kwargs[arg])
-                except (KeyError):
-                    prepared_expr += str(arg)
-        print prepared_expr
-        value = eval(prepared_expr)
-        # print value
-        return value
+    def calculate(subj, expr, obj, **kwargs):
+        # Подставляем значения аргументов
+        for key in kwargs:
+            expr = expr.replace(key, str(kwargs[key]))
+            # Возвращаем вычисленное значение
+        return eval(expr)
+
+    def do_operation(subj, operation, obj=None, **kwargs):
+        # import pdb; pdb.set_trace()
+        formulas = json.loads(operation.formulas)
+        # Если операция является цепочкой операций
+        if 'chain' in formulas:
+            # Удаляем признак 'chain'
+            formulas.remove('chain')
+            # Для каждого из оставшихся елементов
+            # рекурсивно запускаем эту же операцию.
+            for op in formulas:
+                op = Operation.query.filter(Operation.name==op).first()
+                subj.do_operation(op, obj, **kwargs)
+        else:
+            for formula in formulas:
+                # Вычисляем новое значение
+                new_value =  subj.calculate(formula[2], obj, **kwargs)
+                # Изменяем значение свойства
+                prop_type = formula[0].split(".")[0]
+                prop_name = formula[0].split(".")[1]
+                prop = {prop_name: new_value}
+                if prop_type == 'subj':
+                    subj.set_property(**prop)
+                else:
+                    obj.set_property(**prop)
+        # Посылаем сигнал
+        operation_performed.send(subj, operation=operation, obj=obj)
 
     def check_signals(subj):
         conditions = json.loads(subj.reactions[0].conditions)
@@ -110,34 +129,7 @@ class Obj(db.Model):
         if subj_signals != [] and all(results):
             operation = subj.reactions[0].operation
             kwargs = {'step.x': 1, 'step.y': 1}
-            subj.perform_operation(operation, **kwargs)
-
-    def perform_operation(subj, operation, obj=None, **kwargs):
-        # import pdb; pdb.set_trace()
-        formulas = json.loads(operation.formulas)
-        # Если операция является цепочкой операций
-        if 'chain' in formulas:
-            # Удаляем признак 'chain'
-            formulas.remove('chain')
-            # Для каждого из оставшихся елементов
-            # рекурсивно запускаем эту же операцию.
-            for op in formulas:
-                op = Operation.query.filter(Operation.name==op).first()
-                subj.perform_operation(op, obj, **kwargs)
-        else:
-            for formula in formulas:
-                # Вычисляем новое значение
-                new_value = subj.calculate(formula[2], obj, **kwargs)
-                # Изменяем значение свойства
-                prop_type = formula[0].split(".")[0]
-                prop_name = formula[0].split(".")[1]
-                pair = {prop_name: new_value}
-                if prop_type == 'subj':
-                    subj.set_property(**pair)
-                else:
-                    obj.set_property(**pair)
-        # Посылаем сигнал
-        operation_performed.send(subj, operation=operation, obj=obj)
+            subj.do_operation(operation, **kwargs)
 
     def add_category(self, category):
         if not self.is_category(category):
