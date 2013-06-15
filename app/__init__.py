@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 from flask.ext.admin import Admin
+from flask.ext.admin.contrib.sqlamodel import ModelView
 from flask.ext.mail import Mail
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -28,7 +29,7 @@ if not app.debug:
 if not app.debug:
     import logging
     from logging.handlers import RotatingFileHandler
-    file_handler = RotatingFileHandler('../tmp/microblog.log', 'a', 1 * 1024 * 1024, 10)
+    file_handler = RotatingFileHandler('tmp/microblog.log', 'a', 1 * 1024 * 1024, 10)
     file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: '
                                                 '%(message)s [in %(pathname)s:%(lineno)d]'))
     app.logger.setLevel(logging.INFO)

@@ -1,8 +1,9 @@
 # -*- coding:utf-8 -*-
 from hashlib import md5
-from app import db
+from app import db, admin
 import json, re
 from app.signals import operation_performed, store_signal_data, signal_list
+from flask.ext.admin.contrib.sqlamodel import ModelView
 
 
 category_object = db.Table('category_object',
@@ -39,6 +40,9 @@ class Category(db.Model):
 
     def __repr__(self):
         return '<Category %r>' % self.name
+
+    def __str__(self):
+        return self.name
 
 
 class Obj(db.Model):
@@ -148,6 +152,9 @@ class Obj(db.Model):
     def __repr__(self):
         return '<Object %r>' % self.name
 
+    def __str__(self):
+        return self.name
+
 
 class Property(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -156,11 +163,14 @@ class Property(db.Model):
     def __repr__(self):
         return '<Property %r>' % self.name
 
+    def __str__(self):
+        return self.name
+
 
 class Operation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
-    formulas = db.Column(db.String(255))
+    formulas = db.Column(db.Text)
     reactions = db.relationship('Reaction',
                                 primaryjoin="Reaction.operation_id==Operation.id",
                                 backref='operation')
@@ -172,13 +182,16 @@ class Operation(db.Model):
     def __repr__(self):
         return '<Operation %r>' % self.name
 
+    def __str__(self):
+        return self.name
+
 
 class Reaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
     obj_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
     operation_id = db.Column(db.Integer, db.ForeignKey('operation.id'))
-    conditions = db.Column(db.String(255))
+    conditions = db.Column(db.Text)
 
     def __init__(self, name, obj, operation, conditions):
         self.name = name
@@ -189,6 +202,9 @@ class Reaction(db.Model):
     def __repr__(self):
         return '<Reaction %r>' % self.name
 
+    def __str__(self):
+        return self.name
+
 
 class Knowledge(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -197,13 +213,23 @@ class Knowledge(db.Model):
     obj_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
     property_id = db.Column(db.Integer, db.ForeignKey('property.id'))
     operation_id = db.Column(db.Integer, db.ForeignKey('operation.id'))
+    reaction_id = db.Column(db.Integer, db.ForeignKey('reaction.id'))
 
-    subjects = db.relationship('Obj', primaryjoin="Obj.id==Knowledge.subject_id")
-    categories = db.relationship('Category', primaryjoin="Category.id==Knowledge.category_id")
-    objects = db.relationship('Obj', primaryjoin="Obj.id==Knowledge.obj_id")
-    properties = db.relationship('Property', primaryjoin="Property.id==Knowledge.property_id")
-    operations = db.relationship('Operation', primaryjoin="Operation.id==Knowledge.operation_id")
-
+    subject = db.relationship('Obj', primaryjoin="Obj.id==Knowledge.subject_id")
+    category = db.relationship('Category', primaryjoin="Category.id==Knowledge.category_id")
+    obj = db.relationship('Obj', primaryjoin="Obj.id==Knowledge.obj_id")
+    property = db.relationship('Property', primaryjoin="Property.id==Knowledge.property_id")
+    operation = db.relationship('Operation', primaryjoin="Operation.id==Knowledge.operation_id")
+    reaction = db.relationship('Reaction', primaryjoin="Reaction.id==Knowledge.reaction_id")
 
 # subscriptions
 operation_performed.connect(store_signal_data)
+
+# add admin views
+admin.add_view(ModelView(Category, db.session))
+admin.add_view(ModelView(Obj, db.session))
+admin.add_view(ModelView(Object_Property, db.session))
+admin.add_view(ModelView(Property, db.session))
+admin.add_view(ModelView(Operation, db.session))
+admin.add_view(ModelView(Reaction, db.session))
+admin.add_view(ModelView(Knowledge, db.session))
