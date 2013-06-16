@@ -1,9 +1,8 @@
 # -*- coding:utf-8 -*-
 from hashlib import md5
-from app import db, admin
+from app import db
 import json, re
 from app.signals import operation_performed, store_signal_data, signal_list
-from flask.ext.admin.contrib.sqlamodel import ModelView
 
 
 category_object = db.Table('category_object',
@@ -218,12 +217,3 @@ class Knowledge(db.Model):
 
 # subscriptions
 operation_performed.connect(store_signal_data)
-
-# add admin views
-admin.add_view(ModelView(Category, db.session))
-admin.add_view(ModelView(Obj, db.session))
-admin.add_view(ModelView(Object_Property, db.session))
-admin.add_view(ModelView(Property, db.session))
-admin.add_view(ModelView(Operation, db.session))
-admin.add_view(ModelView(Reaction, db.session))
-admin.add_view(ModelView(Knowledge, db.session))
