@@ -39,25 +39,21 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # create operations
         hit = models.Operation(name='hit',
-                               formulas=[
-                                   ['obj.health', '=',
-                                    'obj.health - (subj.energy * subj.power)'],
-                                   ['subj.energy', '=',
-                                    'subj.energy - 1']
+                               expressions=[
+                                   'obj.health = obj.health - (subj.energy * subj.power)',
+                                   'subj.energy = subj.energy - 1'
                                ])
         eat = models.Operation(name='eat',
-                               formulas=[
-                                   ['subj.health', '=',
-                                    'subj.health + (subj.power * subj.angry)'],
-                                   ['obj.health', '=',
-                                    'obj.health - (subj.power * subj.angry)']
+                               expressions=[
+                                   'subj.health = subj.health + (subj.power * subj.angry)',
+                                   'obj.health = obj.health - (subj.power * subj.angry)'
                                ])
         db.session.add(hit)
         db.session.add(eat)
         db.session.commit()
         # create chain of operations
         hit_and_eat = models.Operation(name='hit_and_eat',
-                                       formulas=['chain', 'hit', 'eat'])
+                                       expressions='hit, eat')
         db.session.add(hit_and_eat)
         db.session.commit()
         # query from db

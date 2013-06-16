@@ -28,19 +28,17 @@ class TestCase(unittest.TestCase):
         figvan = models.Obj(name='figvan')
         troll = models.Obj(name='troll')
         # set properties
-        figvan.set_property(x=1, y=1)
+        figvan.set_property(x=1, y=1, step=1)
         db.session.add(figvan)
         db.session.commit()
-        troll.set_property(x=3, y=3)
+        troll.set_property(x=3, y=3, step=1)
         db.session.add(troll)
         db.session.commit()
         # create operations
         move = models.Operation(name='move',
-                                formulas=[
-                                    ['subj.x', '=',
-                                     'subj.x + step.x'],
-                                    ['subj.y', '=',
-                                     'subj.y + step.y'],
+                                expressions=[
+                                    'subj.x = subj.x + subj.step',
+                                    'subj.y = subj.y + subj.step'
                                ])
         db.session.add(move)
         db.session.commit()
@@ -56,9 +54,8 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # query from db
         figvan = models.Obj.query.get(1)
-        kwargs = {'step.x': 1, 'step.y': 1}
         # perform operation
-        figvan.do_operation(move, **kwargs)
+        figvan.do_operation(move)
         db.session.add(figvan)
         db.session.commit()
         # react
@@ -77,19 +74,16 @@ class TestCase(unittest.TestCase):
         figvan = models.Obj(name='figvan')
         troll = models.Obj(name='troll')
         # set properties
-        figvan.set_property(x=1, y=1)
+        figvan.set_property(x=1, y=1, step=1)
         db.session.add(figvan)
         db.session.commit()
-        troll.set_property(x=3, y=3)
+        troll.set_property(x=3, y=3, step=1)
         db.session.add(troll)
         db.session.commit()
         # create operations
         move = models.Operation(name='move',
-                                formulas=[
-                                    ['subj.x', '=',
-                                     'subj.x + step.x'],
-                                    ['subj.y', '=',
-                                     'subj.y + step.y'],
+                                expressions=[
+                                    'subj.x = subj.x + subj.step'
                                     ])
         db.session.add(move)
         db.session.commit()
@@ -105,9 +99,8 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # query from db
         figvan = models.Obj.query.get(1)
-        kwargs = {'step.x': 1, 'step.y': 0}
         # perform operation
-        figvan.do_operation(move, **kwargs)
+        figvan.do_operation(move)
         db.session.add(figvan)
         db.session.commit()
         # react

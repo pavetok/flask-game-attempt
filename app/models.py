@@ -87,31 +87,29 @@ class Obj(db.Model):
             .filter(self.id==Object_Property.obj_id).first()
 
     def calculate(subj, expr, obj, **kwargs):
-        # Подставляем значения аргументов
         for key in kwargs:
             expr = expr.replace(key, str(kwargs[key]))
-            # Возвращаем вычисленное значение
         return eval(expr)
 
     def do_operation(subj, operation, obj=None, **kwargs):
-        # import pdb; pdb.set_trace()
-        formulas = json.loads(operation.formulas)
         # Если операция является цепочкой операций
-        if 'chain' in formulas:
-            # Удаляем признак 'chain'
-            formulas.remove('chain')
-            # Для каждого из оставшихся елементов
-            # рекурсивно запускаем эту же операцию.
-            for op in formulas:
-                op = Operation.query.filter(Operation.name==op).first()
+        if '=' not in operation.expressions:
+            operations = operation.expressions.split(',')
+            # Рекурсивно запускаем эту же операцию.
+            for op_name in operations:
+                op = Operation.query.filter(Operation.name==op_name.strip()).first()
                 subj.do_operation(op, obj, **kwargs)
         else:
-            for formula in formulas:
+            exprs = operation.expressions.replace('{', '[').replace('}', ']')
+            expressions = json.loads(exprs)
+            for expr in expressions:
                 # Вычисляем новое значение
-                new_value =  subj.calculate(formula[2], obj, **kwargs)
+                left_part = expr.split('=')[0].strip()
+                right_part = expr.split('=')[1].strip()
+                new_value =  subj.calculate(right_part, obj, **kwargs)
                 # Изменяем значение свойства
-                prop_type = formula[0].split(".")[0]
-                prop_name = formula[0].split(".")[1]
+                prop_type = left_part.split(".")[0]
+                prop_name = left_part.split(".")[1]
                 prop = {prop_name: new_value}
                 if prop_type == 'subj':
                     subj.set_property(**prop)
@@ -170,14 +168,10 @@ class Property(db.Model):
 class Operation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
-    formulas = db.Column(db.Text)
+    expressions = db.Column(db.Text)
     reactions = db.relationship('Reaction',
                                 primaryjoin="Reaction.operation_id==Operation.id",
                                 backref='operation')
-
-    def __init__(self, name, formulas):
-        self.name = name
-        self.formulas = json.dumps(formulas)
 
     def __repr__(self):
         return '<Operation %r>' % self.name

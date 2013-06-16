@@ -32,12 +32,10 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # create operations
         move = models.Operation(name='move',
-                               formulas=[
-                                   ['subj.x', '=',
-                                    'subj.x + step.x'],
-                                   ['subj.y', '=',
-                                    'subj.y + step.y'],
-                               ])
+                                expressions=[
+                                    'subj.x = subj.x + step.x',
+                                    'subj.y = subj.y + step.y'
+                                ])
         db.session.add(move)
         db.session.commit()
         # query from db
