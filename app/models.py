@@ -118,7 +118,8 @@ class Obj(db.Model):
         operation_performed.send(subj, operation=operation, obj=obj)
 
     def check_signals(subj):
-        conditions = json.loads(subj.reactions[0].conditions)
+        conditions = subj.reactions[0].conditions.replace('{', '[').replace('}', ']')
+        conditions = json.loads(conditions)
         subj_signals = []
         results = []
         for signal in signal_list:
@@ -129,8 +130,7 @@ class Obj(db.Model):
                     subj_signals.append(signal)
         if subj_signals != [] and all(results):
             operation = subj.reactions[0].operation
-            kwargs = {'step.x': 1, 'step.y': 1}
-            subj.do_operation(operation, **kwargs)
+            subj.do_operation(operation)
 
     def add_category(self, category):
         if not self.is_category(category):
@@ -186,11 +186,11 @@ class Reaction(db.Model):
     operation_id = db.Column(db.Integer, db.ForeignKey('operation.id'))
     conditions = db.Column(db.Text)
 
-    def __init__(self, name, obj, operation, conditions):
-        self.name = name
-        self.obj = obj
-        self.operation = operation
-        self.conditions = json.dumps(conditions)
+    # def __init__(self, name, obj, operation, conditions):
+    #     self.name = name
+    #     self.obj = obj
+    #     self.operation = operation
+    #     self.conditions = json.dumps(conditions)
 
     def __repr__(self):
         return '<Reaction %r>' % self.name

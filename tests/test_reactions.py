@@ -48,7 +48,7 @@ class TestCase(unittest.TestCase):
                                  operation=move,
                                  conditions=[
                                      'abs(subj.x - obj.x) <= 1',
-                                     'abs(subj.y - obj.y) <= 1',
+                                     'abs(subj.y - obj.y) <= 1'
                                      ])
         db.session.add(escape)
         db.session.commit()
