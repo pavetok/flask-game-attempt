@@ -28,17 +28,19 @@ class TestCase(unittest.TestCase):
         figvan = models.Obj(name='figvan')
         troll = models.Obj(name='troll')
         # set properties
-        figvan.set_property(x=1, y=1, step=1)
+        kwargs = {'x': 1, 'y': 1, 'шаг': 1}
+        figvan.set_property(**kwargs)
         db.session.add(figvan)
         db.session.commit()
-        troll.set_property(x=3, y=3, step=1)
+        kwargs = {'x': 3, 'y': 3, 'шаг': 1}
+        troll.set_property(**kwargs)
         db.session.add(troll)
         db.session.commit()
         # create operations
         move = models.Operation(name='move',
                                 expressions=[
-                                    'subj.x = subj.x + subj.step',
-                                    'subj.y = subj.y + subj.step'
+                                    "subj.x = subj.x + subj._('шаг')",
+                                    "subj.y = subj.y + subj._('шаг')"
                                ])
         db.session.add(move)
         db.session.commit()
@@ -47,8 +49,8 @@ class TestCase(unittest.TestCase):
                                  obj=troll,
                                  operation=move,
                                  conditions=[
-                                     'abs(subj.x - obj.x) <= 1',
-                                     'abs(subj.y - obj.y) <= 1'
+                                     "abs(subj.x - obj.x) <= 1",
+                                     "abs(subj.y - obj.y) <= 1",
                                      ])
         db.session.add(escape)
         db.session.commit()
@@ -74,16 +76,18 @@ class TestCase(unittest.TestCase):
         figvan = models.Obj(name='figvan')
         troll = models.Obj(name='troll')
         # set properties
-        figvan.set_property(x=1, y=1, step=1)
+        kwargs = {'x': 1, 'y': 1, 'шаг': 1}
+        figvan.set_property(**kwargs)
         db.session.add(figvan)
         db.session.commit()
-        troll.set_property(x=3, y=3, step=1)
+        kwargs = {'x': 3, 'y': 3, 'шаг': 1}
+        troll.set_property(**kwargs)
         db.session.add(troll)
         db.session.commit()
         # create operations
         move = models.Operation(name='move',
                                 expressions=[
-                                    'subj.x = subj.x + subj.step'
+                                    "subj.x = subj.x + subj._('шаг')"
                                     ])
         db.session.add(move)
         db.session.commit()
@@ -92,8 +96,8 @@ class TestCase(unittest.TestCase):
                                  obj=troll,
                                  operation=move,
                                  conditions=[
-                                     '1 >= abs(subj.x - obj.x)',
-                                     '1 >= abs(subj.y - obj.y)',
+                                     "abs(subj.x - obj.x) <= 1",
+                                     "abs(subj.y - obj.y) <= 1",
                                      ])
         db.session.add(escape)
         db.session.commit()

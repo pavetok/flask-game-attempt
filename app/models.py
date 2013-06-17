@@ -64,6 +64,8 @@ class Obj(db.Model):
                 .filter(Property.name==prop_name) \
                 .filter(self.id==Object_Property.obj_id).first().value
 
+    _ = get_property
+
     def set_property(self, **kwargs):
         for key in kwargs:
             op = self.get_obj_prop_instance(key)
