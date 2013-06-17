@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+from app import db
 from blinker import Namespace
 
 operations_signals = Namespace()
@@ -9,12 +10,15 @@ def store_signal_data(subj, operation=None, obj=None, **extra):
     signal = [subj, operation, obj]
     signal_list.append(signal)
     try:
-        record = "%s выполнил операцию %s с объектом %s" % (subj.name, operation.name, obj.name)
+        record = u"%s выполнил(а) %s c %s" % (subj.name, operation.name, obj.name)
     except (AttributeError):
-        record = "%s выполнил операцию %s" % (subj.name, operation.name)
+        record = u"%s выполнил(а) %s" % (subj.name, operation.name)
+        print record
     from app.models import Record
     rec = Record(body=record)
     subj.records.append(rec)
+    db.session.add(subj)
+    db.session.commit()
     # print signal_list
 
 

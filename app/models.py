@@ -40,7 +40,7 @@ class Category(db.Model):
     def __repr__(self):
         return '<Category %r>' % self.name
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
 
@@ -154,7 +154,7 @@ class Obj(db.Model):
     def __repr__(self):
         return '<Object %r>' % self.name
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
 
@@ -165,7 +165,7 @@ class Property(db.Model):
     def __repr__(self):
         return '<Property %r>' % self.name
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
 
@@ -180,7 +180,7 @@ class Operation(db.Model):
     def __repr__(self):
         return '<Operation %r>' % self.name
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
 
@@ -200,7 +200,7 @@ class Reaction(db.Model):
     def __repr__(self):
         return '<Reaction %r>' % self.name
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
 
@@ -212,7 +212,7 @@ class Record(db.Model):
     def __repr__(self):
         return '<Record %r>' % self.body
 
-    def __str__(self):
+    def __unicode__(self):
         return self.body
 
 
