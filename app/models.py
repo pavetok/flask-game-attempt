@@ -2,7 +2,7 @@
 from hashlib import md5
 from app import db
 import json, re
-from app.signals import operation_performed, store_signal_data, signal_list
+from app.signals import operation_performed, signal_list
 
 
 category_object = db.Table('category_object',
@@ -50,6 +50,9 @@ class Obj(db.Model):
     properties = db.relationship('Object_Property', backref='obj')
     reactions = db.relationship('Reaction',
                                 primaryjoin="Reaction.obj_id==Obj.id",
+                                backref='obj')
+    records = db.relationship('Record',
+                                primaryjoin="Record.obj_id==Obj.id",
                                 backref='obj')
 
     def __getattr__(self, name):
@@ -201,6 +204,18 @@ class Reaction(db.Model):
         return self.name
 
 
+class Record(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    obj_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
+    body = db.Column(db.Text)
+
+    def __repr__(self):
+        return '<Record %r>' % self.body
+
+    def __str__(self):
+        return self.body
+
+
 class Knowledge(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     subject_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
@@ -216,6 +231,3 @@ class Knowledge(db.Model):
     property = db.relationship('Property', primaryjoin="Property.id==Knowledge.property_id")
     operation = db.relationship('Operation', primaryjoin="Operation.id==Knowledge.operation_id")
     reaction = db.relationship('Reaction', primaryjoin="Reaction.id==Knowledge.reaction_id")
-
-# subscriptions
-operation_performed.connect(store_signal_data)

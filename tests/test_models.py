@@ -141,6 +141,39 @@ class TestCase(unittest.TestCase):
         assert op2.categories.first().name == 'animals'
         assert c2.operations.first().name == 'walk'
 
+    def test_records(self):
+        # create objects
+        figvan = models.Obj(name='figvan')
+        troll = models.Obj(name='troll')
+        # set properties
+        kwargs = {'x': 1, 'y': 1, 'шаг': 1}
+        figvan.set_property(**kwargs)
+        db.session.add(figvan)
+        db.session.commit()
+        kwargs = {'x': 3, 'y': 3, 'шаг': 1}
+        troll.set_property(**kwargs)
+        db.session.add(troll)
+        db.session.commit()
+        # create operations
+        move = models.Operation(name='move',
+                                expressions=[
+                                    "subj.x = subj.x + subj._('шаг')",
+                                    "subj.y = subj.y + subj._('шаг')"
+                                ])
+        db.session.add(move)
+        db.session.commit()
+        # query from db
+        figvan = models.Obj.query.get(1)
+        # perform operation
+        figvan.do_operation(move)
+        db.session.add(figvan)
+        db.session.commit()
+        # query from db
+        figvan = models.Obj.query.get(1)
+        # assert
+        print figvan.records[0].body
+        assert figvan.records[0].body == "figvan move"
+
     def test_knowledge(self):
         # create instances
         o1 = models.Obj(name='figvan')
