@@ -10,7 +10,7 @@ def store_signal_data(subj, operation=None, obj=None, **extra):
     signal = [subj, operation, obj]
     signal_list.append(signal)
     try:
-        record = u"%s выполнил(а) %s c %s" % (subj.name, operation.name, obj.name)
+        record = u"%s выполнил(а) %s над %s" % (subj.name, operation.name, obj.name)
     except (AttributeError):
         record = u"%s выполнил(а) %s" % (subj.name, operation.name)
         print record
@@ -20,7 +20,6 @@ def store_signal_data(subj, operation=None, obj=None, **extra):
     db.session.add(subj)
     db.session.commit()
     # print signal_list
-
 
 # subscriptions
 operation_performed.connect(store_signal_data)

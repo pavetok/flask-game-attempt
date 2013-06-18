@@ -90,7 +90,7 @@ class Obj(db.Model):
             .filter(Property.name==prop_name)\
             .filter(self.id==Object_Property.obj_id).first()
 
-    def calculate(subj, expr, obj, **kwargs):
+    def calculate(subj, expr, obj=None, **kwargs):
         for key in kwargs:
             expr = expr.replace(key, str(kwargs[key]))
         return eval(expr)
@@ -123,8 +123,8 @@ class Obj(db.Model):
         operation_performed.send(subj, operation=operation, obj=obj)
 
     def check_signals(subj):
-        conditions = subj.reactions[0].conditions.replace('{', '[').replace('}', ']')
-        conditions = json.loads(conditions)
+        cons = subj.reactions[0].conditions.replace('{', '[').replace('}', ']')
+        conditions = json.loads(cons)
         subj_signals = []
         results = []
         for signal in signal_list:

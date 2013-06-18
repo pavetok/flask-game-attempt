@@ -20,10 +20,15 @@ def history(subj):
                            records = records)
 
 @app.route('/start/<subj>/<operation>')
-def start(subj, operation):
+@app.route('/start/<subj>/<operation>/<obj>')
+def start(subj, operation, obj=None):
     subj = Obj.query.filter(Obj.name==subj).first()
     op = Operation.query.filter(Operation.name==operation).first()
-    subj.do_operation(op)
+    if obj is not None:
+        obj = Obj.query.filter(Obj.name==obj).first()
+        subj.do_operation(op, obj)
+    else:
+        subj.do_operation(op)
     db.session.add(subj)
     db.session.commit()
     return 'Success'
