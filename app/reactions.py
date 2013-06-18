@@ -12,10 +12,8 @@ def start_monitoring():
             for con in conditions:
                 try:
                     result = subj.calculate(con)
-                    print result
                     if result:
                         operation = reaction.operation
-                        # print operation
                         subj.do_operation(operation)
                         db.session.add(subj)
                         db.session.commit()
