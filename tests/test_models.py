@@ -157,8 +157,8 @@ class TestCase(unittest.TestCase):
         # create operations
         move = models.Operation(name='move',
                                 expressions=[
-                                    "subj.x = subj.x + subj._('шаг')",
-                                    "subj.y = subj.y + subj._('шаг')"
+                                    "subj.x = subj.x + subj.gp('шаг')",
+                                    "subj.y = subj.y + subj.gp('шаг')"
                                 ])
         db.session.add(move)
         db.session.commit()

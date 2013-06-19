@@ -11,7 +11,7 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 admin = Admin(app)
 
-from app import views, models, reactions
+from app import views, models, patterns
 
 if not app.debug:
     import logging

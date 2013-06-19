@@ -48,8 +48,8 @@ class Obj(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
     properties = db.relationship('Object_Property', backref='obj')
-    reactions = db.relationship('Reaction',
-                                primaryjoin="Reaction.obj_id==Obj.id",
+    patterns = db.relationship('Pattern',
+                                primaryjoin="Pattern.obj_id==Obj.id",
                                 backref='obj')
     records = db.relationship('Record',
                                 primaryjoin="Record.obj_id==Obj.id",
@@ -67,7 +67,7 @@ class Obj(db.Model):
                 .filter(Property.name==prop_name) \
                 .filter(self.id==Object_Property.obj_id).first().value
 
-    _ = get_property
+    gp = get_property
 
     def set_property(self, **kwargs):
         for key in kwargs:
@@ -123,7 +123,7 @@ class Obj(db.Model):
         operation_performed.send(subj, operation=operation, obj=obj)
 
     def check_signals(subj):
-        cons = subj.reactions[0].conditions.replace('{', '[').replace('}', ']')
+        cons = subj.patterns[0].conditions.replace('{', '[').replace('}', ']')
         conditions = json.loads(cons)
         subj_signals = []
         results = []
@@ -134,22 +134,8 @@ class Obj(db.Model):
                 if result:
                     subj_signals.append(signal)
         if subj_signals != [] and all(results):
-            operation = subj.reactions[0].operation
+            operation = subj.patterns[0].operation
             subj.do_operation(operation)
-
-    def add_category(self, category):
-        if not self.is_category(category):
-            self.categories.append(category)
-            return self
-
-    def del_category(self, category):
-        if not self.is_category(category):
-            self.categories.remove(category)
-            return self
-
-    def is_category(self, category):
-        return self.categories.filter(category_object.c.category_id==category.id)\
-                   .count() > 0
 
     def __repr__(self):
         return '<Object %r>' % self.name
@@ -172,9 +158,9 @@ class Property(db.Model):
 class Operation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
-    expressions = db.Column(db.Text)
-    reactions = db.relationship('Reaction',
-                                primaryjoin="Reaction.operation_id==Operation.id",
+    expressions = db.Column(db.Text, unique=True)
+    patterns = db.relationship('Pattern',
+                                primaryjoin="Pattern.operation_id==Operation.id",
                                 backref='operation')
 
     def __repr__(self):
@@ -184,21 +170,30 @@ class Operation(db.Model):
         return self.name
 
 
-class Reaction(db.Model):
+class Condition(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), unique=True)
+    expressions = db.Column(db.Text, unique=True)
+    patterns = db.relationship('Pattern',
+                                primaryjoin="Pattern.condition_id==Condition.id",
+                                backref='condition')
+
+    def __repr__(self):
+        return '<Condition %r>' % self.name
+
+    def __unicode__(self):
+        return self.name
+
+
+class Pattern(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
     obj_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
     operation_id = db.Column(db.Integer, db.ForeignKey('operation.id'))
-    conditions = db.Column(db.Text)
-
-    # def __init__(self, name, obj, operation, conditions):
-    #     self.name = name
-    #     self.obj = obj
-    #     self.operation = operation
-    #     self.conditions = json.dumps(conditions)
+    condition_id = db.Column(db.Integer, db.ForeignKey('condition.id'))
 
     def __repr__(self):
-        return '<Reaction %r>' % self.name
+        return '<Pattern %r>' % self.name
 
     def __unicode__(self):
         return self.name
@@ -223,11 +218,11 @@ class Knowledge(db.Model):
     obj_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
     property_id = db.Column(db.Integer, db.ForeignKey('property.id'))
     operation_id = db.Column(db.Integer, db.ForeignKey('operation.id'))
-    reaction_id = db.Column(db.Integer, db.ForeignKey('reaction.id'))
+    pattern_id = db.Column(db.Integer, db.ForeignKey('pattern.id'))
 
     subject = db.relationship('Obj', primaryjoin="Obj.id==Knowledge.subject_id")
     category = db.relationship('Category', primaryjoin="Category.id==Knowledge.category_id")
     obj = db.relationship('Obj', primaryjoin="Obj.id==Knowledge.obj_id")
     property = db.relationship('Property', primaryjoin="Property.id==Knowledge.property_id")
     operation = db.relationship('Operation', primaryjoin="Operation.id==Knowledge.operation_id")
-    reaction = db.relationship('Reaction', primaryjoin="Reaction.id==Knowledge.reaction_id")
+    pattern = db.relationship('Pattern', primaryjoin="Pattern.id==Knowledge.pattern_id")
