@@ -8,7 +8,7 @@ def start_monitoring():
     subjects = Obj.query.all()
     for subj in subjects:
         for pattern in subj.patterns:
-            conditions = json.loads(pattern.conditions)
+            conditions = json.loads(pattern.condition.expressions)
             for con in conditions:
                 try:
                     result = subj.calculate(con)

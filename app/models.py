@@ -2,6 +2,7 @@
 from hashlib import md5
 from app import db
 import json, re
+from app.decorators import async
 from app.signals import operation_performed, signal_list
 
 
@@ -95,6 +96,7 @@ class Obj(db.Model):
             expr = expr.replace(key, str(kwargs[key]))
         return eval(expr)
 
+    @async
     def do_operation(subj, operation, obj=None, **kwargs):
         # Если операция является цепочкой операций
         if '=' not in operation.expressions:
@@ -122,6 +124,7 @@ class Obj(db.Model):
         # Посылаем сигнал
         operation_performed.send(subj, operation=operation, obj=obj)
 
+    @async
     def check_signals(subj):
         cons = subj.patterns[0].conditions.replace('{', '[').replace('}', ']')
         conditions = json.loads(cons)
