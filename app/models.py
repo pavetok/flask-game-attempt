@@ -1,9 +1,11 @@
 # -*- coding:utf-8 -*-
+from Queue import Queue
 from hashlib import md5
 from app import db
 import json, re
 from app.signals import operation_performed, signal_list
 
+queue = Queue()
 
 category_object = db.Table('category_object',
                           db.Column('category_id', db.Integer,

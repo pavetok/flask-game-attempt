@@ -5,6 +5,7 @@ venv
 tmp
 search.db
 db_repository
+tests/coverage
 stuff
 *.py[co]
 *.db

@@ -3,6 +3,10 @@
 import unittest
 from datetime import datetime
 from app import app, db, models
+from app.async import execute_tasks
+from app.models import queue
+import gevent
+
 
 class TestCase(unittest.TestCase):
 
@@ -54,9 +58,11 @@ class TestCase(unittest.TestCase):
         assert figvan.health == 5
         assert figvan.power == 5
         assert troll.health == 20
-        # perform operation
-        figvan.do_operation(hit, troll)
-        figvan.do_operation(eat, troll)
+        # create queue
+        queue.put([figvan, hit, troll])
+        queue.put([figvan, eat, troll])
+        gl = gevent.Greenlet(execute_tasks, )
+        gl.run()
         db.session.add(figvan)
         db.session.add(troll)
         db.session.commit()
