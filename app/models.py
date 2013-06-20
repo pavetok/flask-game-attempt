@@ -2,7 +2,6 @@
 from hashlib import md5
 from app import db
 import json, re
-from app.decorators import async
 from app.signals import operation_performed, signal_list
 
 

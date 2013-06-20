@@ -3,12 +3,6 @@
 import unittest
 from datetime import datetime
 from app import app, db, models
-from config import basedir
-from coverage import coverage
-import os
-
-cov = coverage(branch = True, omit = ['venv/*', 'tests.py'])
-cov.start()
 
 class TestCase(unittest.TestCase):
 
@@ -53,14 +47,4 @@ class TestCase(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    try:
-        unittest.main()
-    except:
-        pass
-    cov.stop()
-    cov.save()
-    print "\n\nCoverage Report:\n"
-    cov.report()
-    print "HTML version: " + os.path.join(basedir, "tmp/coverage/index.html")
-    cov.html_report(directory = 'tmp/coverage')
-    cov.erase()
+    unittest.main()
