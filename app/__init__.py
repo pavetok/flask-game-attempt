@@ -13,6 +13,8 @@ admin = Admin(app)
 
 from app import views, models, patterns
 
+#patterns.start_monitoring()
+
 if not app.debug:
     import logging
     from logging.handlers import SMTPHandler

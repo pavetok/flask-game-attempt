@@ -96,7 +96,6 @@ class Obj(db.Model):
             expr = expr.replace(key, str(kwargs[key]))
         return eval(expr)
 
-    @async
     def do_operation(subj, operation, obj=None, **kwargs):
         # Если операция является цепочкой операций
         if '=' not in operation.expressions:
@@ -124,9 +123,8 @@ class Obj(db.Model):
         # Посылаем сигнал
         operation_performed.send(subj, operation=operation, obj=obj)
 
-    @async
     def check_signals(subj):
-        cons = subj.patterns[0].conditions.replace('{', '[').replace('}', ']')
+        cons = subj.patterns[0].condition.expressions.replace('{', '[').replace('}', ']')
         conditions = json.loads(cons)
         subj_signals = []
         results = []

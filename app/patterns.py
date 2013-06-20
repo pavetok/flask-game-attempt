@@ -19,5 +19,3 @@ def start_monitoring():
                         db.session.commit()
                 except (AttributeError):
                     pass
-
-start_monitoring()

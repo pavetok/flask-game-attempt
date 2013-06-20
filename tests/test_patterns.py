@@ -44,14 +44,19 @@ class TestCase(unittest.TestCase):
                                ])
         db.session.add(move)
         db.session.commit()
-        # create reactions
+        # create conditions
+        obj_nearly = models.Condition(name="obj_nearly",
+                                expressions=[
+                                    "abs(subj.x - obj.x) <= 1",
+                                    "abs(subj.y - obj.y) <= 1"
+                                    ])
+        db.session.add(obj_nearly)
+        db.session.commit()
+        # create patterns
         escape = models.Pattern(name='escape',
                                  obj=troll,
                                  operation=move,
-                                 conditions=[
-                                     "abs(subj.x - obj.x) <= 1",
-                                     "abs(subj.y - obj.y) <= 1",
-                                     ])
+                                 condition=obj_nearly)
         db.session.add(escape)
         db.session.commit()
         # query from db
@@ -91,14 +96,19 @@ class TestCase(unittest.TestCase):
                                     ])
         db.session.add(move)
         db.session.commit()
-        # create reactions
+        # create conditions
+        obj_nearly = models.Condition(name="obj_nearly",
+                                      expressions=[
+                                          "abs(subj.x - obj.x) <= 1",
+                                          "abs(subj.y - obj.y) <= 1"
+                                      ])
+        db.session.add(obj_nearly)
+        db.session.commit()
+        # create patterns
         escape = models.Pattern(name='escape',
-                                 obj=troll,
-                                 operation=move,
-                                 conditions=[
-                                     "abs(subj.x - obj.x) <= 1",
-                                     "abs(subj.y - obj.y) <= 1",
-                                     ])
+                                obj=troll,
+                                operation=move,
+                                condition=obj_nearly)
         db.session.add(escape)
         db.session.commit()
         # query from db

@@ -13,7 +13,7 @@ admin.add_view(ModelView(Condition, db.session))
 admin.add_view(ModelView(Pattern, db.session))
 admin.add_view(ModelView(Knowledge, db.session))
 
-@app.route('/<subj>')
+@app.route('/history/<subj>')
 def history(subj):
     subj = Obj.query.filter(Obj.name==subj).first()
     records = subj.records
