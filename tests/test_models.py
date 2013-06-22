@@ -114,8 +114,8 @@ class TestCase(unittest.TestCase):
         db.session.add(c2)
         db.session.commit()
         # create a operations
-        op1 = models.Operation(name='speak', expressions=None)
-        op2 = models.Operation(name='walk', expressions=None)
+        op1 = models.Operation(name='speak', formulas=None)
+        op2 = models.Operation(name='walk', formulas=None)
         db.session.add(op1)
         db.session.add(op2)
         db.session.commit()
@@ -156,7 +156,7 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # create operations
         move = models.Operation(name='move',
-                                expressions=[
+                                formulas=[
                                     "subj.x = subj.x + subj.gp('шаг')",
                                     "subj.y = subj.y + subj.gp('шаг')"
                                 ])
@@ -180,7 +180,7 @@ class TestCase(unittest.TestCase):
         c1 = models.Category(name='heroes')
         o2 = models.Obj(name='troll')
         p1 = models.Property(name='power')
-        op1 = models.Operation(name='hit', expressions=None)
+        op1 = models.Operation(name='hit', formulas=None)
         db.session.add(o1)
         db.session.add(c1)
         db.session.add(o2)

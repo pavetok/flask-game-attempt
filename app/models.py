@@ -3,7 +3,8 @@ from Queue import Queue
 from hashlib import md5
 from app import db
 import json
-from app.signals import operation_performed, signal_list
+from app.signals import operation_performed, event_list
+from sqlalchemy.exc import InvalidRequestError
 
 queue = Queue()
 
@@ -98,22 +99,23 @@ class Obj(db.Model):
         return eval(expr)
 
     def do_operation(subj, operation, obj=None, **kwargs):
-        # Если операция является цепочкой операций
-        if '=' not in operation.expressions:
-            operations = operation.expressions.split(',')
-            # Рекурсивно запускаем эту же операцию.
+        # если операция является цепочкой операций
+        if '=' not in operation.formulas:
+            operations = operation.formulas.split(',')
+            # рекурсивно запускаем вложенные операции
             for op_name in operations:
                 op = Operation.query.filter(Operation.name==op_name.strip()).first()
-                subj.do_operation(op, obj, **kwargs)
+                queue.put([subj, op, obj, kwargs])
+        # иначе, если операция является конечной
         else:
-            exprs = operation.expressions.replace('{', '[').replace('}', ']')
-            expressions = json.loads(exprs)
-            for expr in expressions:
-                # Вычисляем новое значение
-                left_part = expr.split('=')[0].strip()
-                right_part = expr.split('=')[1].strip()
+            # получаем формулы данной операции
+            expressions = operation.formulas.replace('{', '[').replace('}', ']')
+            formulas = json.loads(expressions)
+            # вычисляем каждую из формул
+            for formula in formulas:
+                left_part = formula.split('=')[0].strip()
+                right_part = formula.split('=')[1].strip()
                 new_value =  subj.calculate(right_part, obj, **kwargs)
-                # Изменяем значение свойства
                 prop_type = left_part.split(".")[0]
                 prop_name = left_part.split(".")[1]
                 prop = {prop_name: new_value}
@@ -121,22 +123,44 @@ class Obj(db.Model):
                     subj.set_property(**prop)
                 else:
                     obj.set_property(**prop)
+            # создаем и добавляем запись в историю
+            try:
+                record = u"%s выполнил(а) %s над %s" % (subj.name, operation.name, obj.name)
+            except (AttributeError):
+                record = u"%s выполнил(а) %s" % (subj.name, operation.name)
+            rec = Record(body=record)
+            subj.records.append(rec)
+            # print subj, subj.x
+            # коммитим изменения в бд
+            db.session.add(subj)
+            if obj != None:
+                try:
+                    db.session.add(obj)
+                except InvalidRequestError:
+                    db.session.merge(obj)
+            db.session.commit()
+            # print 'commited'
+            # посылаем сигнал о том, что операция выполнена
+            operation_performed.send(subj, operation=operation, obj=obj)
 
-    def check_signals(subj):
-        cons = subj.patterns[0].event.conditions.replace('{', '[').replace('}', ']')
-        conditions = json.loads(cons)
-        subj_signals = []
-        results = []
-        for signal in signal_list:
-            for condition in conditions:
-                result = subj.calculate(condition, signal[0])
-                results.append(result)
-                if result:
-                    subj_signals.append(signal)
-        if subj_signals != [] and all(results):
-            operation = subj.patterns[0].operation
-            queue.put([subj, operation])
-            #subj.do_operation(operation)
+    def check_events(subj):
+        for pattern in subj.patterns:
+            cons = pattern.event.conditions.replace('{', '[').replace('}', ']')
+            conditions = json.loads(cons)
+            events_for_subj = []
+            for event in event_list:
+                results = []
+                for condition in conditions:
+                    obj = event[0]
+                    result = subj.calculate(condition, obj)
+                    results.append(result)
+                if all(results):
+                    events_for_subj.append(event)
+            if events_for_subj != []:
+                for event in events_for_subj:
+                    obj = event[0]
+                    operation = pattern.operation
+                    queue.put([subj, operation, obj])
 
     def __repr__(self):
         return '<Object %r>' % self.name
@@ -159,7 +183,7 @@ class Property(db.Model):
 class Operation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
-    expressions = db.Column(db.Text, unique=True)
+    formulas = db.Column(db.Text, unique=True)
     patterns = db.relationship('Pattern',
                                 primaryjoin="Pattern.operation_id==Operation.id",
                                 backref='operation')

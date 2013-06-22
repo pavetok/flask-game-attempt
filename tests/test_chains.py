@@ -3,6 +3,9 @@
 import unittest
 from datetime import datetime
 from app import app, db, models
+from app.models import queue
+from app.tasks import execute_operations_tasks
+
 
 class TestCase(unittest.TestCase):
 
@@ -33,12 +36,12 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # create operations
         hit = models.Operation(name='hit',
-                               expressions=[
+                               formulas=[
                                    'obj.health = obj.health - (subj.energy * subj.power)',
                                    'subj.energy = subj.energy - 1'
                                ])
         eat = models.Operation(name='eat',
-                               expressions=[
+                               formulas=[
                                    'subj.health = subj.health + (subj.power * subj.angry)',
                                    'obj.health = obj.health - (subj.power * subj.angry)'
                                ])
@@ -47,17 +50,15 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # create chain of operations
         hit_and_eat = models.Operation(name='hit_and_eat',
-                                       expressions='hit, eat')
+                                       formulas='hit, eat')
         db.session.add(hit_and_eat)
         db.session.commit()
         # query from db
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
         # perform operation
-        figvan.do_operation(hit_and_eat, troll)
-        db.session.add(figvan)
-        db.session.add(troll)
-        db.session.commit()
+        queue.put([figvan, hit_and_eat, troll])
+        execute_operations_tasks()
         # query from db
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)

@@ -3,6 +3,9 @@
 import unittest
 from datetime import datetime
 from app import app, db, models
+from app.models import queue
+from app.tasks import execute_operations_tasks
+
 
 class TestCase(unittest.TestCase):
 
@@ -26,7 +29,7 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # create operations
         move = models.Operation(name='move',
-                                expressions=[
+                                formulas=[
                                     'subj.x = subj.x + step.x',
                                     'subj.y = subj.y + step.y'
                                 ])
@@ -36,9 +39,9 @@ class TestCase(unittest.TestCase):
         figvan = models.Obj.query.get(1)
         kwargs = {'step.x': 1, 'step.y': 1}
         # perform operation
-        figvan.do_operation(move, **kwargs)
-        db.session.add(figvan)
-        db.session.commit()
+        # figvan.do_operation(move, **kwargs)
+        queue.put([figvan, move, None, kwargs])
+        execute_operations_tasks()
         # query from db
         figvan = models.Obj.query.get(1)
         # assert

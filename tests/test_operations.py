@@ -37,12 +37,12 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # create operations
         hit = models.Operation(name='hit',
-                               expressions=[
+                               formulas=[
                                    'obj.health = obj.health - (subj.energy * subj.power)',
                                    'subj.energy = subj.energy - 1'
                                ])
         eat = models.Operation(name='eat',
-                               expressions=[
+                               formulas=[
                                    'subj.health = subj.health + (subj.power * subj.angry)',
                                    'obj.health = obj.health - (subj.power * subj.angry)'
                                ])
@@ -61,14 +61,11 @@ class TestCase(unittest.TestCase):
         # create queue
         queue.put([figvan, hit, troll])
         queue.put([figvan, eat, troll])
-        # execute_operations_tasks()
+        execute_operations_tasks()
         # query from db
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
         # assert
-        print figvan.health
-        print figvan.energy
-        print troll.health
         assert figvan.health == 10
         assert figvan.energy == 1
         assert troll.health == 5

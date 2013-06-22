@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 from app import admin, db, app
-from app.models import Category, Obj, Object_Property, Property, Operation, Pattern, Knowledge, Event
+from app.models import Category, Obj, Object_Property, Property, Operation, Pattern, Knowledge, Event, queue, Record
+from app.tasks import execute_operations_tasks
 from flask import render_template, redirect, url_for
 from flask.ext.admin.contrib.sqlamodel import ModelView
 
@@ -11,6 +12,7 @@ admin.add_view(ModelView(Property, db.session))
 admin.add_view(ModelView(Operation, db.session))
 admin.add_view(ModelView(Event, db.session))
 admin.add_view(ModelView(Pattern, db.session))
+admin.add_view(ModelView(Record, db.session))
 admin.add_view(ModelView(Knowledge, db.session))
 
 @app.route('/history/<subj>')
@@ -27,9 +29,11 @@ def start(subj, operation, obj=None):
     op = Operation.query.filter(Operation.name==operation).first()
     if obj is not None:
         obj = Obj.query.filter(Obj.name==obj).first()
-        subj.do_operation(op, obj)
+        queue.put([subj, op, obj])
     else:
         subj.do_operation(op)
-    db.session.add(subj)
-    db.session.commit()
+        queue.put([subj, op])
+    execute_operations_tasks()
+    obj.check_events()
+    execute_operations_tasks()
     return 'Success'

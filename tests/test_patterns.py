@@ -5,6 +5,7 @@ from datetime import datetime
 from app import app, db, models
 from app.models import queue
 from app.tasks import execute_operations_tasks
+from app.signals import clear_event_list
 
 
 class TestCase(unittest.TestCase):
@@ -21,6 +22,8 @@ class TestCase(unittest.TestCase):
         db.drop_all()
 
     def test_reaction(self):
+        # чистим список событий, иначе будут мешать события из других тестов
+        clear_event_list()
         # create objects
         figvan = models.Obj(name='figvan')
         troll = models.Obj(name='troll')
@@ -35,15 +38,15 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # create operations
         move = models.Operation(name='move',
-                                conditions=[
+                                formulas=[
                                     "subj.x = subj.x + subj.gp('шаг')",
                                     "subj.y = subj.y + subj.gp('шаг')"
                                ])
         db.session.add(move)
         db.session.commit()
-        # create conditions
+        # create events
         obj_nearly = models.Event(name="obj_nearly",
-                                condition=[
+                                  conditions=[
                                     "abs(subj.x - obj.x) <= 1",
                                     "abs(subj.y - obj.y) <= 1"
                                     ])
@@ -53,7 +56,7 @@ class TestCase(unittest.TestCase):
         escape = models.Pattern(name='escape',
                                  obj=troll,
                                  operation=move,
-                                 condition=obj_nearly)
+                                 event=obj_nearly)
         db.session.add(escape)
         db.session.commit()
         # query from db
@@ -61,11 +64,8 @@ class TestCase(unittest.TestCase):
         # perform operation
         queue.put([figvan, move])
         execute_operations_tasks()
-        # figvan.do_operation(move)
-        # db.session.add(figvan)
-        # db.session.commit()
-        # react
-        troll.check_signals()
+        troll.check_events()
+        execute_operations_tasks()
         # query from db
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
@@ -90,12 +90,12 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # create operations
         move = models.Operation(name='move',
-                                conditions=[
+                                formulas=[
                                     "subj.x = subj.x + subj.gp('шаг')"
                                     ])
         db.session.add(move)
         db.session.commit()
-        # create conditions
+        # create events
         obj_nearly = models.Event(name="obj_nearly",
                                       conditions=[
                                           "abs(subj.x - obj.x) <= 1",
@@ -107,17 +107,16 @@ class TestCase(unittest.TestCase):
         escape = models.Pattern(name='escape',
                                 obj=troll,
                                 operation=move,
-                                condition=obj_nearly)
+                                event=obj_nearly)
         db.session.add(escape)
         db.session.commit()
         # query from db
         figvan = models.Obj.query.get(1)
         # perform operation
-        figvan.do_operation(move)
-        db.session.add(figvan)
-        db.session.commit()
-        # react
-        troll.check_signals()
+        queue.put([figvan, move])
+        execute_operations_tasks()
+        troll.check_events()
+        execute_operations_tasks()
         # query from db
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
