@@ -3,6 +3,9 @@
 import unittest
 from datetime import datetime
 from app import app, db, models
+from app.models import queue
+from app.tasks import execute_operations_tasks
+
 
 class TestCase(unittest.TestCase):
 
@@ -32,15 +35,15 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # create operations
         move = models.Operation(name='move',
-                                expressions=[
+                                conditions=[
                                     "subj.x = subj.x + subj.gp('шаг')",
                                     "subj.y = subj.y + subj.gp('шаг')"
                                ])
         db.session.add(move)
         db.session.commit()
         # create conditions
-        obj_nearly = models.Condition(name="obj_nearly",
-                                expressions=[
+        obj_nearly = models.Event(name="obj_nearly",
+                                condition=[
                                     "abs(subj.x - obj.x) <= 1",
                                     "abs(subj.y - obj.y) <= 1"
                                     ])
@@ -56,9 +59,11 @@ class TestCase(unittest.TestCase):
         # query from db
         figvan = models.Obj.query.get(1)
         # perform operation
-        figvan.do_operation(move)
-        db.session.add(figvan)
-        db.session.commit()
+        queue.put([figvan, move])
+        execute_operations_tasks()
+        # figvan.do_operation(move)
+        # db.session.add(figvan)
+        # db.session.commit()
         # react
         troll.check_signals()
         # query from db
@@ -85,14 +90,14 @@ class TestCase(unittest.TestCase):
         db.session.commit()
         # create operations
         move = models.Operation(name='move',
-                                expressions=[
+                                conditions=[
                                     "subj.x = subj.x + subj.gp('шаг')"
                                     ])
         db.session.add(move)
         db.session.commit()
         # create conditions
-        obj_nearly = models.Condition(name="obj_nearly",
-                                      expressions=[
+        obj_nearly = models.Event(name="obj_nearly",
+                                      conditions=[
                                           "abs(subj.x - obj.x) <= 1",
                                           "abs(subj.y - obj.y) <= 1"
                                       ])

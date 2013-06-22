@@ -1,11 +1,11 @@
 # -*- coding:utf-8 -*-
 #!flask/bin/python
 import unittest
+from time import sleep
 from datetime import datetime
 from app import app, db, models
-from app.async import execute_tasks
+from app.tasks import execute_operations_tasks
 from app.models import queue
-import gevent
 
 
 class TestCase(unittest.TestCase):
@@ -61,15 +61,14 @@ class TestCase(unittest.TestCase):
         # create queue
         queue.put([figvan, hit, troll])
         queue.put([figvan, eat, troll])
-        gl = gevent.Greenlet(execute_tasks, )
-        gl.run()
-        db.session.add(figvan)
-        db.session.add(troll)
-        db.session.commit()
+        # execute_operations_tasks()
         # query from db
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
         # assert
+        print figvan.health
+        print figvan.energy
+        print troll.health
         assert figvan.health == 10
         assert figvan.energy == 1
         assert troll.health == 5

@@ -34,3 +34,13 @@ LANGUAGES = {
 # microsoft translation service
 MS_TRANSLATOR_CLIENT_ID = 'pavetok'
 MS_TRANSLATOR_CLIENT_SECRET = 'E7KytAqOyIS43reIBaobR9vXTj0GEDOcWPN5tj8lqAE'
+
+# celery
+BROKER_URL = 'sqla+postgresql://postgres:395885@localhost/celery.db'
+CELERY_RESULT_BACKEND = "database"
+CELERY_RESULT_DBURI = 'sqla+postgresql://postgres:395885@localhost/results.db'
+
+CELERY_IMPORTS = ("app.tasks", )
+
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'

@@ -1,12 +1,13 @@
 # -*- coding:utf-8 -*-
 from blinker import Namespace
 
-operations_signals = Namespace()
-operation_performed = operations_signals.signal('operation-performed')
+signals = Namespace()
+operation_performed = signals.signal('operation-performed')
 
 signal_list = []
-def store_signal_data(subj, operation=None, obj=None, **extra):
+def handle_operation_data(subj, operation=None, obj=None, **extra):
     signal = [subj, operation, obj]
+    # print subj.health
     signal_list.append(signal)
     try:
         record = u"%s выполнил(а) %s над %s" % (subj.name, operation.name, obj.name)
@@ -15,6 +16,10 @@ def store_signal_data(subj, operation=None, obj=None, **extra):
     from app.models import Record
     rec = Record(body=record)
     subj.records.append(rec)
+    from app import db
+    db.session.add(subj)
+    db.session.add(obj)
+    db.session.commit()
 
 # subscriptions
-operation_performed.connect(store_signal_data)
+operation_performed.connect(handle_operation_data)

@@ -2,7 +2,7 @@
 from Queue import Queue
 from hashlib import md5
 from app import db
-import json, re
+import json
 from app.signals import operation_performed, signal_list
 
 queue = Queue()
@@ -121,11 +121,9 @@ class Obj(db.Model):
                     subj.set_property(**prop)
                 else:
                     obj.set_property(**prop)
-        # Посылаем сигнал
-        operation_performed.send(subj, operation=operation, obj=obj)
 
     def check_signals(subj):
-        cons = subj.patterns[0].condition.expressions.replace('{', '[').replace('}', ']')
+        cons = subj.patterns[0].event.conditions.replace('{', '[').replace('}', ']')
         conditions = json.loads(cons)
         subj_signals = []
         results = []
@@ -137,7 +135,8 @@ class Obj(db.Model):
                     subj_signals.append(signal)
         if subj_signals != [] and all(results):
             operation = subj.patterns[0].operation
-            subj.do_operation(operation)
+            queue.put([subj, operation])
+            #subj.do_operation(operation)
 
     def __repr__(self):
         return '<Object %r>' % self.name
@@ -172,16 +171,16 @@ class Operation(db.Model):
         return self.name
 
 
-class Condition(db.Model):
+class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
-    expressions = db.Column(db.Text, unique=True)
+    conditions = db.Column(db.Text, unique=True)
     patterns = db.relationship('Pattern',
-                                primaryjoin="Pattern.condition_id==Condition.id",
-                                backref='condition')
+                                primaryjoin="Pattern.event_id==Event.id",
+                                backref='event')
 
     def __repr__(self):
-        return '<Condition %r>' % self.name
+        return '<Event %r>' % self.name
 
     def __unicode__(self):
         return self.name
@@ -192,7 +191,7 @@ class Pattern(db.Model):
     name = db.Column(db.String(120), unique=True)
     obj_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
     operation_id = db.Column(db.Integer, db.ForeignKey('operation.id'))
-    condition_id = db.Column(db.Integer, db.ForeignKey('condition.id'))
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'))
 
     def __repr__(self):
         return '<Pattern %r>' % self.name

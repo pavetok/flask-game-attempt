@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+from celery import Celery
 from flask.ext.admin import Admin
 from flask.ext.mail import Mail
 from flask import Flask
@@ -10,10 +11,11 @@ app.config.from_object('config')
 db = SQLAlchemy(app)
 mail = Mail(app)
 admin = Admin(app)
+celery = Celery(app)
+celery.conf.add_defaults(app.config)
 
-from app import views, models, patterns
-
-#patterns.start_monitoring()
+from app import views, models, tasks
+# tasks.start_monitoring()
 
 if not app.debug:
     import logging
