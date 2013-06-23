@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from app import admin, db, app
-from app.models import Category, Obj, Object_Property, Property, Operation, Pattern, Knowledge, Event, queue, Record
+from app.models import Category, Obj, Object_Property, Property, Operation, Pattern, Knowledge, Interpretation, queue, Record
 from app.tasks import execute_operations_tasks
 from flask import render_template, redirect, url_for
 from flask.ext.admin.contrib.sqlamodel import ModelView
@@ -10,7 +10,7 @@ admin.add_view(ModelView(Obj, db.session))
 admin.add_view(ModelView(Object_Property, db.session))
 admin.add_view(ModelView(Property, db.session))
 admin.add_view(ModelView(Operation, db.session))
-admin.add_view(ModelView(Event, db.session))
+admin.add_view(ModelView(Interpretation, db.session))
 admin.add_view(ModelView(Pattern, db.session))
 admin.add_view(ModelView(Record, db.session))
 admin.add_view(ModelView(Knowledge, db.session))
@@ -36,4 +36,5 @@ def start(subj, operation, obj=None):
     execute_operations_tasks()
     obj.check_events()
     execute_operations_tasks()
+    subj.check_events()
     return 'Success'

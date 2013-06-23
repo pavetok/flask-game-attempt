@@ -163,7 +163,7 @@ class Obj(db.Model):
                     queue.put([subj, operation, obj])
 
     def __repr__(self):
-        return '<Object %r>' % self.name
+        return '<Object %s>' % self.name
 
     def __unicode__(self):
         return self.name
@@ -189,22 +189,22 @@ class Operation(db.Model):
                                 backref='operation')
 
     def __repr__(self):
-        return '<Operation %r>' % self.name
+        return '<Operation %s>' % self.name
 
     def __unicode__(self):
         return self.name
 
 
-class Event(db.Model):
+class Interpretation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
     conditions = db.Column(db.Text, unique=True)
     patterns = db.relationship('Pattern',
-                                primaryjoin="Pattern.event_id==Event.id",
-                                backref='event')
+                                primaryjoin="Pattern.interpretation_id==Interpretation.id",
+                                backref='interpretation')
 
     def __repr__(self):
-        return '<Event %r>' % self.name
+        return '<Interpretation %s>' % self.name
 
     def __unicode__(self):
         return self.name
@@ -215,10 +215,10 @@ class Pattern(db.Model):
     name = db.Column(db.String(120), unique=True)
     obj_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
     operation_id = db.Column(db.Integer, db.ForeignKey('operation.id'))
-    event_id = db.Column(db.Integer, db.ForeignKey('event.id'))
+    interpretation_id = db.Column(db.Integer, db.ForeignKey('interpretation.id'))
 
     def __repr__(self):
-        return '<Pattern %r>' % self.name
+        return '<Pattern %s>' % self.name
 
     def __unicode__(self):
         return self.name
@@ -230,7 +230,7 @@ class Record(db.Model):
     body = db.Column(db.Text)
 
     def __repr__(self):
-        return '<Record %r>' % self.body
+        return '<Record %s>' % self.body
 
     def __unicode__(self):
         return self.body

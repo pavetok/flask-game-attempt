@@ -45,7 +45,7 @@ class TestCase(unittest.TestCase):
         db.session.add(move)
         db.session.commit()
         # create events
-        obj_nearly = models.Event(name="obj_nearly",
+        obj_nearly = models.Interpretation(name="obj_nearly",
                                   conditions=[
                                     "abs(subj.x - obj.x) <= 1",
                                     "abs(subj.y - obj.y) <= 1"
@@ -96,7 +96,7 @@ class TestCase(unittest.TestCase):
         db.session.add(move)
         db.session.commit()
         # create events
-        obj_nearly = models.Event(name="obj_nearly",
+        obj_nearly = models.Interpretation(name="obj_nearly",
                                       conditions=[
                                           "abs(subj.x - obj.x) <= 1",
                                           "abs(subj.y - obj.y) <= 1"
