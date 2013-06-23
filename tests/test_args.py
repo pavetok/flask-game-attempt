@@ -4,7 +4,7 @@ import unittest
 from datetime import datetime
 from app import app, db, models
 from app.models import queue
-from app.executors import perform_operations
+from app.handlers import perform_operations
 
 
 class TestCase(unittest.TestCase):

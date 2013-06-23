@@ -4,7 +4,7 @@ import unittest
 from time import sleep
 from datetime import datetime
 from app import app, db, models
-from app.executors import perform_operations
+from app.handlers import perform_operations
 from app.models import queue
 
 

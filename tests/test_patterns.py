@@ -4,7 +4,7 @@ import unittest
 from datetime import datetime
 from app import app, db, models
 from app.models import queue
-from app.executors import perform_operations, interpret_situation
+from app.handlers import perform_operations, interpret_situation
 from app.signals import clear_event_list
 
 
@@ -64,7 +64,7 @@ class TestCase(unittest.TestCase):
         # perform operation
         queue.put([figvan, move])
         perform_operations()
-        troll.check_events()
+        interpret_situation()
         perform_operations()
         # query from db
         figvan = models.Obj.query.get(1)
@@ -116,7 +116,6 @@ class TestCase(unittest.TestCase):
         queue.put([figvan, move])
         perform_operations()
         interpret_situation()
-        # troll.check_events()
         perform_operations()
         # query from db
         figvan = models.Obj.query.get(1)
@@ -124,7 +123,6 @@ class TestCase(unittest.TestCase):
         # assert
         assert figvan.x == 2
         assert figvan.y == 1
-        print troll.x
         assert troll.x == 3
         assert troll.y == 3
 

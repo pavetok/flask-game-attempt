@@ -11,8 +11,9 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 admin = Admin(app)
 
-from app import views, models, executors
-# tasks.interpret_situation()
+from app import views, models, handlers
+
+handlers.start_game()
 
 if not app.debug:
     import logging

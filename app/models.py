@@ -20,7 +20,7 @@ category_operation = db.Table('category_operation',
                              db.Column('operation_id', db.Integer,
                                        db.ForeignKey('operation.id')))
 
-class Object_Property(db.Model):
+class Value(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     obj_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
     property_id = db.Column(db.Integer, db.ForeignKey('property.id'))
@@ -50,7 +50,7 @@ class Category(db.Model):
 class Obj(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
-    properties = db.relationship('Object_Property', backref='obj')
+    properties = db.relationship('Value', backref='obj')
     patterns = db.relationship('Pattern',
                                 primaryjoin="Pattern.obj_id==Obj.id",
                                 backref='obj')
@@ -59,16 +59,16 @@ class Obj(db.Model):
                                 backref='obj')
 
     def __getattr__(self, name):
-        return Object_Property.query.join(Property,
-            (Property.id==Object_Property.property_id)) \
+        return Value.query.join(Property,
+            (Property.id==Value.property_id)) \
             .filter(Property.name==name) \
-            .filter(self.id==Object_Property.obj_id).first().value
+            .filter(self.id==Value.obj_id).first().value
 
     def get_property(self, prop_name):
-        return Object_Property.query.join(Property,
-                (Property.id==Object_Property.property_id)) \
+        return Value.query.join(Property,
+                (Property.id==Value.property_id)) \
                 .filter(Property.name==prop_name) \
-                .filter(self.id==Object_Property.obj_id).first().value
+                .filter(self.id==Value.obj_id).first().value
 
     gp = get_property
 
@@ -80,18 +80,18 @@ class Obj(db.Model):
             if op is not None:
                 op.value = new_value
             elif p is not None:
-                op = Object_Property(property=p, value=new_value)
+                op = Value(property=p, value=new_value)
                 self.properties.append(op)
             else:
                 p = Property(name=key)
-                op = Object_Property(property=p, value=new_value)
+                op = Value(property=p, value=new_value)
                 self.properties.append(op)
 
     def get_obj_prop_instance(self, prop_name):
-        return Object_Property.query.join(Property,
-            (Property.id==Object_Property.property_id))\
+        return Value.query.join(Property,
+            (Property.id==Value.property_id))\
             .filter(Property.name==prop_name)\
-            .filter(self.id==Object_Property.obj_id).first()
+            .filter(self.id==Value.obj_id).first()
 
     def calculate(subj, expr, obj=None, **kwargs):
         for key in kwargs:
@@ -142,25 +142,6 @@ class Obj(db.Model):
             # print 'commited'
             # посылаем сигнал о том, что операция выполнена
             operation_performed.send(subj, operation=operation, obj=obj)
-
-    def check_events(subj):
-        for pattern in subj.patterns:
-            cons = pattern.event.conditions.replace('{', '[').replace('}', ']')
-            conditions = json.loads(cons)
-            events_for_subj = []
-            for event in event_list:
-                results = []
-                for condition in conditions:
-                    obj = event[0]
-                    result = subj.calculate(condition, obj)
-                    results.append(result)
-                if all(results):
-                    events_for_subj.append(event)
-            if events_for_subj != []:
-                for event in events_for_subj:
-                    obj = event[0]
-                    operation = pattern.operation
-                    queue.put([subj, operation, obj])
 
     def __repr__(self):
         return '<Object %s>' % self.name
