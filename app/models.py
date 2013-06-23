@@ -53,7 +53,7 @@ class Obj(db.Model):
     properties = db.relationship('Value', backref='obj')
     patterns = db.relationship('Pattern',
                                 primaryjoin="Pattern.obj_id==Obj.id",
-                                backref='obj')
+                                backref='subj')
     records = db.relationship('Record',
                                 primaryjoin="Record.obj_id==Obj.id",
                                 backref='obj')
@@ -193,7 +193,6 @@ class Interpretation(db.Model):
 
 class Pattern(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), unique=True)
     obj_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
     operation_id = db.Column(db.Integer, db.ForeignKey('operation.id'))
     interpretation_id = db.Column(db.Integer, db.ForeignKey('interpretation.id'))
