@@ -11,8 +11,8 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 admin = Admin(app)
 
-from app import views, models, tasks
-# tasks.start_monitoring()
+from app import views, models, executors
+# tasks.interpret_situation()
 
 if not app.debug:
     import logging

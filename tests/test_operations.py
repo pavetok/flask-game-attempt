@@ -4,7 +4,7 @@ import unittest
 from time import sleep
 from datetime import datetime
 from app import app, db, models
-from app.tasks import execute_operations_tasks
+from app.executors import perform_operations
 from app.models import queue
 
 
@@ -61,7 +61,7 @@ class TestCase(unittest.TestCase):
         # create queue
         queue.put([figvan, hit, troll])
         queue.put([figvan, eat, troll])
-        execute_operations_tasks()
+        perform_operations()
         # query from db
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)

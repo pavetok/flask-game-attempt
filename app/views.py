@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 from app import admin, db, app
 from app.models import Category, Obj, Object_Property, Property, Operation, Pattern, Knowledge, Interpretation, queue, Record
-from app.tasks import execute_operations_tasks
+from app.executors import perform_operations, interpret_situation
 from flask import render_template, redirect, url_for
 from flask.ext.admin.contrib.sqlamodel import ModelView
 
@@ -33,8 +33,7 @@ def start(subj, operation, obj=None):
     else:
         subj.do_operation(op)
         queue.put([subj, op])
-    execute_operations_tasks()
-    obj.check_events()
-    execute_operations_tasks()
-    subj.check_events()
+    perform_operations()
+    interpret_situation()
+    perform_operations()
     return 'Success'

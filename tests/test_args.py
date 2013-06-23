@@ -4,7 +4,7 @@ import unittest
 from datetime import datetime
 from app import app, db, models
 from app.models import queue
-from app.tasks import execute_operations_tasks
+from app.executors import perform_operations
 
 
 class TestCase(unittest.TestCase):
@@ -41,7 +41,7 @@ class TestCase(unittest.TestCase):
         # perform operation
         # figvan.do_operation(move, **kwargs)
         queue.put([figvan, move, None, kwargs])
-        execute_operations_tasks()
+        perform_operations()
         # query from db
         figvan = models.Obj.query.get(1)
         # assert
