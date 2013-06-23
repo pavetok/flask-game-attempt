@@ -20,7 +20,7 @@ category_operation = db.Table('category_operation',
                              db.Column('operation_id', db.Integer,
                                        db.ForeignKey('operation.id')))
 
-class Value(db.Model):
+class Object_Property_Value(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     obj_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
     property_id = db.Column(db.Integer, db.ForeignKey('property.id'))
@@ -50,7 +50,7 @@ class Category(db.Model):
 class Obj(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
-    properties = db.relationship('Value', backref='obj')
+    properties = db.relationship('Object_Property_Value', backref='obj')
     patterns = db.relationship('Pattern',
                                 primaryjoin="Pattern.obj_id==Obj.id",
                                 backref='subj')
@@ -59,16 +59,16 @@ class Obj(db.Model):
                                 backref='obj')
 
     def __getattr__(self, name):
-        return Value.query.join(Property,
-            (Property.id==Value.property_id)) \
+        return Object_Property_Value.query.join(Property,
+            (Property.id==Object_Property_Value.property_id)) \
             .filter(Property.name==name) \
-            .filter(self.id==Value.obj_id).first().value
+            .filter(self.id==Object_Property_Value.obj_id).first().value
 
     def get_property(self, prop_name):
-        return Value.query.join(Property,
-                (Property.id==Value.property_id)) \
+        return Object_Property_Value.query.join(Property,
+                (Property.id==Object_Property_Value.property_id)) \
                 .filter(Property.name==prop_name) \
-                .filter(self.id==Value.obj_id).first().value
+                .filter(self.id==Object_Property_Value.obj_id).first().value
 
     gp = get_property
 
@@ -80,18 +80,18 @@ class Obj(db.Model):
             if op is not None:
                 op.value = new_value
             elif p is not None:
-                op = Value(property=p, value=new_value)
+                op = Object_Property_Value(property=p, value=new_value)
                 self.properties.append(op)
             else:
                 p = Property(name=key)
-                op = Value(property=p, value=new_value)
+                op = Object_Property_Value(property=p, value=new_value)
                 self.properties.append(op)
 
     def get_obj_prop_instance(self, prop_name):
-        return Value.query.join(Property,
-            (Property.id==Value.property_id))\
+        return Object_Property_Value.query.join(Property,
+            (Property.id==Object_Property_Value.property_id))\
             .filter(Property.name==prop_name)\
-            .filter(self.id==Value.obj_id).first()
+            .filter(self.id==Object_Property_Value.obj_id).first()
 
     def calculate(subj, expr, obj=None, **kwargs):
         for key in kwargs:

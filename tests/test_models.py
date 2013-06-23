@@ -77,8 +77,8 @@ class TestCase(unittest.TestCase):
         p1 = models.Property.query.get(1)
         p2 = models.Property.query.get(2)
         # create association instances
-        op1 = models.Value()
-        op2 = models.Value()
+        op1 = models.Object_Property_Value()
+        op2 = models.Object_Property_Value()
         # add properties and values to association instances
         op1.property = p1
         op1.value = 5
@@ -93,8 +93,8 @@ class TestCase(unittest.TestCase):
         # query from db
         o1 = models.Obj.query.get(1)
         o2 = models.Obj.query.get(2)
-        op1 = models.Value.query.get(1)
-        op2 = models.Value.query.get(2)
+        op1 = models.Object_Property_Value.query.get(1)
+        op2 = models.Object_Property_Value.query.get(2)
         p1 = models.Property.query.get(1)
         p2 = models.Property.query.get(2)
         # assert
