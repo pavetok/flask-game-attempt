@@ -144,9 +144,12 @@ class Obj(db.Model):
             operation_performed.send(subj, operation=operation, obj=obj)
 
     def __repr__(self):
-        return '<Object %s>' % self.name
+        return '<Object %r>' % self.name
 
     def __unicode__(self):
+        return self.name
+
+    def __str__(self):
         return self.name
 
 

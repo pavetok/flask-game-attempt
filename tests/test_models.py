@@ -1,10 +1,12 @@
 # -*- coding:utf-8 -*-
 #!flask/bin/python
+import json
 import unittest
 from datetime import datetime
 from app import app, db, models
 from config import basedir
 from coverage import coverage
+from flask import Response, jsonify
 import os
 
 cov = coverage(branch = True, omit = ['venv/*', 'test_models.py'])
@@ -22,6 +24,38 @@ class TestCase(unittest.TestCase):
     def tearDown(self):
         db.session.remove()
         db.drop_all()
+
+    def test_all_objects(self):
+        # create a object
+        o1 = models.Obj(name='фигван')
+        db.session.add(o1)
+        db.session.commit()
+        # create properties
+        p1 = models.Property(name='сила')
+        p2 = models.Property(name='health')
+        db.session.add(p1)
+        db.session.add(p2)
+        db.session.commit()
+        # create association instances
+        op1 = models.Object_Property_Value()
+        op2 = models.Object_Property_Value()
+        # add properties and values to association instances
+        op1.property = p1
+        op1.value = 5
+        op2.property = p2
+        op2.value = 10
+        # append association instances to objects
+        o1.properties.append(op1)
+        o1.properties.append(op2)
+        db.session.add(o1)
+        db.session.commit()
+        objects = {}
+        for o in models.Obj.query.all():
+            obj = {"name": o.name, "properties": {opv.property.name: o.gp(opv.property.name) for opv in o.properties}}
+            objects.update(obj)
+        print json.dumps(objects)
+        print jsonify(objects)
+        print Response(json.dumps(objects),  mimetype='application/json')
 
     def test_category_object(self):
         # create a category

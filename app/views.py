@@ -1,8 +1,9 @@
 # -*- coding:utf-8 -*-
+import json
 from app import admin, db, app
 from app.models import Category, Obj, Object_Property_Value, Property, Operation, Pattern, Knowledge, Interpretation, queue, Record
 from app.handlers import perform_operations, interpret_situation
-from flask import render_template, redirect, url_for
+from flask import render_template, redirect, url_for, jsonify, Response
 from flask.ext.admin.contrib.sqlamodel import ModelView
 
 admin.add_view(ModelView(Category, db.session))
@@ -36,3 +37,22 @@ def start(subj, operation, obj=None):
     interpret_situation()
     perform_operations()
     return 'Success'
+
+@app.route('/game')
+def game():
+    return render_template('layer.html')
+
+@app.route('/update')
+def update():
+    # objects = []
+    objects = {}
+    for o in Obj.query.all():
+        # obj = {"obj":
+        #     {o.name: {opv.property.name: o.gp(opv.property.name) for opv in o.properties}}
+        # }
+        obj = {o.name: {opv.property.name: o.gp(opv.property.name) for opv in o.properties}}
+        # objects.append(obj)
+        objects.update(obj)
+    print  json.dumps(objects)
+    # return jsonify(objects)
+    return Response(json.dumps(objects),  mimetype='application/json')

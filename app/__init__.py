@@ -13,7 +13,7 @@ admin = Admin(app)
 
 from app import views, models, handlers
 
-handlers.start_game()
+# handlers.start_game()
 
 if not app.debug:
     import logging
