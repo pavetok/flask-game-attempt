@@ -1,5 +1,5 @@
-var CANVAS_WIDTH = 480;
-var CANVAS_HEIGHT = 320;
+var CANVAS_WIDTH = 480 * 2;
+var CANVAS_HEIGHT = 320 * 2;
 
 var canvasElement = $("<canvas width='" + CANVAS_WIDTH +
     "' height='" + CANVAS_HEIGHT + "'></canvas>");
@@ -7,7 +7,7 @@ var ctx = canvasElement.get(0).getContext("2d");
 canvasElement.appendTo('body');
 
 //var FPS = 30;
-var FPS = 5;
+var FPS = 1;
 setInterval(function() {
     update();
 }, 1000/FPS);

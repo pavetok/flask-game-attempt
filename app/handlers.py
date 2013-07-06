@@ -29,6 +29,7 @@ def interpret_situation():
                         operation = pattern.operation
                         queue.put([subj, operation, obj])
 
+
 def perform_operations():
     while not queue.empty():
         # забираем таск из очереди
@@ -42,5 +43,16 @@ def perform_operations():
             kwargs = task[3]
         except IndexError:
             pass
-        # выполняем операцию
-        subj.do_operation(operation, obj, **kwargs)
+        prev_subj = []
+        # если объект только что делал шаг
+        if subj in prev_subj:
+            print subj
+            print prev_subj
+            # текущую операцию отправляем в конец очереди
+            queue.put([subj, operation, obj])
+        # если объект еще не делал шаг
+        else:
+            # выполняем операцию
+            subj.do_operation(operation, obj, **kwargs)
+            del prev_subj[:]
+            prev_subj.append(subj)
