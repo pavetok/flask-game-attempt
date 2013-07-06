@@ -4,7 +4,7 @@ import unittest
 from datetime import datetime
 from app import app, db, models
 from app.models import queue
-from app.tasks import execute_operations_tasks
+from app.handlers import perform_operations, interpret_situation
 from app.signals import clear_event_list
 
 
@@ -44,8 +44,8 @@ class TestCase(unittest.TestCase):
                                ])
         db.session.add(move)
         db.session.commit()
-        # create events
-        obj_nearly = models.Event(name="obj_nearly",
+        # create interpretations
+        obj_nearly = models.Interpretation(name="obj_nearly",
                                   conditions=[
                                     "abs(subj.x - obj.x) <= 1",
                                     "abs(subj.y - obj.y) <= 1"
@@ -56,16 +56,16 @@ class TestCase(unittest.TestCase):
         escape = models.Pattern(name='escape',
                                  obj=troll,
                                  operation=move,
-                                 event=obj_nearly)
+                                 interpretation=obj_nearly)
         db.session.add(escape)
         db.session.commit()
         # query from db
         figvan = models.Obj.query.get(1)
         # perform operation
         queue.put([figvan, move])
-        execute_operations_tasks()
-        troll.check_events()
-        execute_operations_tasks()
+        perform_operations()
+        interpret_situation()
+        perform_operations()
         # query from db
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)
@@ -95,8 +95,8 @@ class TestCase(unittest.TestCase):
                                     ])
         db.session.add(move)
         db.session.commit()
-        # create events
-        obj_nearly = models.Event(name="obj_nearly",
+        # create interpretations
+        obj_nearly = models.Interpretation(name="obj_nearly",
                                       conditions=[
                                           "abs(subj.x - obj.x) <= 1",
                                           "abs(subj.y - obj.y) <= 1"
@@ -107,16 +107,16 @@ class TestCase(unittest.TestCase):
         escape = models.Pattern(name='escape',
                                 obj=troll,
                                 operation=move,
-                                event=obj_nearly)
+                                interpretation=obj_nearly)
         db.session.add(escape)
         db.session.commit()
         # query from db
         figvan = models.Obj.query.get(1)
         # perform operation
         queue.put([figvan, move])
-        execute_operations_tasks()
-        troll.check_events()
-        execute_operations_tasks()
+        perform_operations()
+        interpret_situation()
+        perform_operations()
         # query from db
         figvan = models.Obj.query.get(1)
         troll = models.Obj.query.get(2)

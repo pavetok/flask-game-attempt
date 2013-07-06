@@ -20,7 +20,7 @@ category_operation = db.Table('category_operation',
                              db.Column('operation_id', db.Integer,
                                        db.ForeignKey('operation.id')))
 
-class Object_Property(db.Model):
+class Object_Property_Value(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     obj_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
     property_id = db.Column(db.Integer, db.ForeignKey('property.id'))
@@ -50,25 +50,25 @@ class Category(db.Model):
 class Obj(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
-    properties = db.relationship('Object_Property', backref='obj')
+    properties = db.relationship('Object_Property_Value', backref='obj')
     patterns = db.relationship('Pattern',
                                 primaryjoin="Pattern.obj_id==Obj.id",
-                                backref='obj')
+                                backref='subj')
     records = db.relationship('Record',
                                 primaryjoin="Record.obj_id==Obj.id",
                                 backref='obj')
 
     def __getattr__(self, name):
-        return Object_Property.query.join(Property,
-            (Property.id==Object_Property.property_id)) \
+        return Object_Property_Value.query.join(Property,
+            (Property.id==Object_Property_Value.property_id)) \
             .filter(Property.name==name) \
-            .filter(self.id==Object_Property.obj_id).first().value
+            .filter(self.id==Object_Property_Value.obj_id).first().value
 
     def get_property(self, prop_name):
-        return Object_Property.query.join(Property,
-                (Property.id==Object_Property.property_id)) \
+        return Object_Property_Value.query.join(Property,
+                (Property.id==Object_Property_Value.property_id)) \
                 .filter(Property.name==prop_name) \
-                .filter(self.id==Object_Property.obj_id).first().value
+                .filter(self.id==Object_Property_Value.obj_id).first().value
 
     gp = get_property
 
@@ -80,18 +80,18 @@ class Obj(db.Model):
             if op is not None:
                 op.value = new_value
             elif p is not None:
-                op = Object_Property(property=p, value=new_value)
+                op = Object_Property_Value(property=p, value=new_value)
                 self.properties.append(op)
             else:
                 p = Property(name=key)
-                op = Object_Property(property=p, value=new_value)
+                op = Object_Property_Value(property=p, value=new_value)
                 self.properties.append(op)
 
     def get_obj_prop_instance(self, prop_name):
-        return Object_Property.query.join(Property,
-            (Property.id==Object_Property.property_id))\
+        return Object_Property_Value.query.join(Property,
+            (Property.id==Object_Property_Value.property_id))\
             .filter(Property.name==prop_name)\
-            .filter(self.id==Object_Property.obj_id).first()
+            .filter(self.id==Object_Property_Value.obj_id).first()
 
     def calculate(subj, expr, obj=None, **kwargs):
         for key in kwargs:
@@ -125,7 +125,7 @@ class Obj(db.Model):
                     obj.set_property(**prop)
             # создаем и добавляем запись в историю
             try:
-                record = u"%s выполнил(а) %s над %s" % (subj.name, operation.name, obj.name)
+                record = u"%s выполнил(а) %s с %s" % (subj.name, operation.name, obj.name)
             except (AttributeError):
                 record = u"%s выполнил(а) %s" % (subj.name, operation.name)
             rec = Record(body=record)
@@ -143,29 +143,13 @@ class Obj(db.Model):
             # посылаем сигнал о том, что операция выполнена
             operation_performed.send(subj, operation=operation, obj=obj)
 
-    def check_events(subj):
-        for pattern in subj.patterns:
-            cons = pattern.event.conditions.replace('{', '[').replace('}', ']')
-            conditions = json.loads(cons)
-            events_for_subj = []
-            for event in event_list:
-                results = []
-                for condition in conditions:
-                    obj = event[0]
-                    result = subj.calculate(condition, obj)
-                    results.append(result)
-                if all(results):
-                    events_for_subj.append(event)
-            if events_for_subj != []:
-                for event in events_for_subj:
-                    obj = event[0]
-                    operation = pattern.operation
-                    queue.put([subj, operation, obj])
-
     def __repr__(self):
         return '<Object %r>' % self.name
 
     def __unicode__(self):
+        return self.name
+
+    def __str__(self):
         return self.name
 
 
@@ -189,22 +173,22 @@ class Operation(db.Model):
                                 backref='operation')
 
     def __repr__(self):
-        return '<Operation %r>' % self.name
+        return '<Operation %s>' % self.name
 
     def __unicode__(self):
         return self.name
 
 
-class Event(db.Model):
+class Interpretation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
     conditions = db.Column(db.Text, unique=True)
     patterns = db.relationship('Pattern',
-                                primaryjoin="Pattern.event_id==Event.id",
-                                backref='event')
+                                primaryjoin="Pattern.interpretation_id==Interpretation.id",
+                                backref='interpretation')
 
     def __repr__(self):
-        return '<Event %r>' % self.name
+        return '<Interpretation %s>' % self.name
 
     def __unicode__(self):
         return self.name
@@ -212,13 +196,12 @@ class Event(db.Model):
 
 class Pattern(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), unique=True)
     obj_id = db.Column(db.Integer, db.ForeignKey('obj.id'))
     operation_id = db.Column(db.Integer, db.ForeignKey('operation.id'))
-    event_id = db.Column(db.Integer, db.ForeignKey('event.id'))
+    interpretation_id = db.Column(db.Integer, db.ForeignKey('interpretation.id'))
 
     def __repr__(self):
-        return '<Pattern %r>' % self.name
+        return '<Pattern %s>' % self.name
 
     def __unicode__(self):
         return self.name
@@ -230,7 +213,7 @@ class Record(db.Model):
     body = db.Column(db.Text)
 
     def __repr__(self):
-        return '<Record %r>' % self.body
+        return '<Record %s>' % self.body
 
     def __unicode__(self):
         return self.body
