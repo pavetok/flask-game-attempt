@@ -31,6 +31,7 @@ def interpret_situation():
 
 
 def perform_operations():
+    prev_subj = []
     while not queue.empty():
         # забираем таск из очереди
         task = queue.get()
@@ -43,13 +44,10 @@ def perform_operations():
             kwargs = task[3]
         except IndexError:
             pass
-        prev_subj = []
         # если объект только что делал шаг
         if subj in prev_subj:
-            print subj
-            print prev_subj
-            # текущую операцию отправляем в конец очереди
-            queue.put([subj, operation, obj])
+            # текущую операцию пропускаем
+            continue
         # если объект еще не делал шаг
         else:
             # выполняем операцию

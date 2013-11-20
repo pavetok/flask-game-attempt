@@ -125,9 +125,11 @@ class Obj(db.Model):
                     obj.set_property(**prop)
             # создаем и добавляем запись в историю
             try:
-                record = u"%s выполнил(а) %s с %s" % (subj.name, operation.name, obj.name)
+                record = u"%s (%s, %s) выполнил(а) %s с %s (%s, %s)" % \
+                         (subj.name, subj.x, subj.y, operation.name, obj.name, obj.x, obj.y)
             except (AttributeError):
-                record = u"%s выполнил(а) %s" % (subj.name, operation.name)
+                record = u"%s (%s, %s) выполнил(а) %s" % \
+                         (subj.name, subj.x, subj.y, operation.name)
             rec = Record(body=record)
             subj.records.append(rec)
             # print subj, subj.x
